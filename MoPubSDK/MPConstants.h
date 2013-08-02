@@ -29,4 +29,4 @@
 #define INTERSTITIAL_TIMEOUT_INTERVAL       30
 
 // Feature Flags
-#define SESSION_TRACKING_ENABLED            1
+#define SESSION_TRACKING_ENABLED            0
