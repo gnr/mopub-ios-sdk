@@ -28,6 +28,15 @@
 #import "FakeMPTimer.h"
 #import "FakeCTCarrier.h"
 
+@class MRJavaScriptEventEmitter;
+@class MRCalendarManager;
+@class EKEventStore;
+@class EKEventEditViewController;
+@class MRPictureManager;
+@class MRVideoPlayerManager;
+@class MPMoviePlayerViewController;
+@class MRBundleManager;
+
 @interface FakeMPInstanceProvider : MPInstanceProvider
 
 #pragma mark - Fetching Ads
@@ -52,7 +61,20 @@
 @property (nonatomic, assign) MPURLResolver *fakeMPURLResolver;
 @property (nonatomic, assign) MPAdDestinationDisplayAgent *fakeMPAdDestinationDisplayAgent;
 
+#pragma mark - MRAID
+@property (nonatomic, assign) MRBundleManager *fakeMRBundleManager;
+@property (nonatomic, assign) UIWebView *fakeUIWebView;
+@property (nonatomic, assign) MRJavaScriptEventEmitter *fakeMRJavaScriptEventEmitter;
+@property (nonatomic, assign) MRCalendarManager *fakeMRCalendarManager;
+@property (nonatomic, assign) EKEventEditViewController *fakeEKEventEditViewController;
+@property (nonatomic, assign) EKEventStore *fakeEKEventStore;
+@property (nonatomic, assign) MRPictureManager *fakeMRPictureManager;
+@property (nonatomic, assign) MRImageDownloader *fakeImageDownloader;
+@property (nonatomic, assign) MRVideoPlayerManager *fakeMRVideoPlayerManager;
+@property (nonatomic, assign) MPMoviePlayerViewController *fakeMoviePlayerViewController;
+
 #pragma mark - Utilities
+@property (nonatomic, assign) FakeOperationQueue *fakeOperationQueue;
 @property (nonatomic, assign) FakeMPReachability *fakeMPReachability;
 @property (nonatomic, assign) FakeCTCarrier *fakeCTCarrier;
 
@@ -72,8 +94,9 @@
 @property (nonatomic, assign) Chartboost *fakeChartboost;
 
 #pragma mark Google Ad Mob
-@property (nonatomic, assign) GADRequest *fakeGADRequest;
+@property (nonatomic, assign) GADRequest *fakeGADBannerRequest;
 @property (nonatomic, assign) GADBannerView *fakeGADBannerView;
+@property (nonatomic, assign) GADRequest *fakeGADInterstitialRequest;
 @property (nonatomic, assign) GADInterstitial *fakeGADInterstitial;
 
 #pragma mark Greystripe
@@ -81,8 +104,9 @@
 @property (nonatomic, assign) FakeGSFullscreenAd *fakeGSFullscreenAd;
 
 #pragma mark InMobi
-@property (nonatomic, assign) IMAdRequest *fakeIMAdRequest;
+@property (nonatomic, assign) IMAdRequest *fakeIMAdBannerRequest;
 @property (nonatomic, assign) IMAdView *fakeIMAdView;
+@property (nonatomic, assign) IMAdRequest *fakeIMAdInterstitialRequest;
 @property (nonatomic, assign) IMAdInterstitial *fakeIMAdInterstitial;
 
 #pragma mark Millennial
