@@ -24,9 +24,9 @@ describe(@"MPGoogleAdMobBannerIntegrationSuite", ^{
 
         banner = [[[MPAdView alloc] initWithAdUnitId:@"admob_event" size:MOPUB_BANNER_SIZE] autorelease];
         banner.delegate = delegate;
-        banner.location = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1, 21.2)
+        banner.location = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1f, 21.2f)
                                                          altitude:11
-                                               horizontalAccuracy:12.3
+                                               horizontalAccuracy:12.3f
                                                  verticalAccuracy:10
                                                         timestamp:[NSDate date]] autorelease];
         [banner loadAd];
@@ -41,7 +41,7 @@ describe(@"MPGoogleAdMobBannerIntegrationSuite", ^{
         configuration = [MPAdConfigurationFactory defaultBannerConfigurationWithHeaders:headers
                                                                              HTMLString:nil];
 
-        communicator = fakeProvider.lastFakeMPAdServerCommunicator;
+        communicator = fakeCoreProvider.lastFakeMPAdServerCommunicator;
         [communicator receiveConfiguration:configuration];
     });
 
@@ -61,7 +61,7 @@ describe(@"MPGoogleAdMobBannerIntegrationSuite", ^{
             verify_fake_received_selectors(delegate, @[@"adViewDidLoadAd:"]);
             banner.subviews should equal(@[fakeAd]);
             banner.adContentViewSize should equal(CGSizeMake(728, 90));
-            fakeProvider.sharedFakeMPAnalyticsTracker.trackedImpressionConfigurations should equal(@[configuration]);
+            fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedImpressionConfigurations should equal(@[configuration]);
         });
 
         context(@"when the user taps the ad", ^{
@@ -72,10 +72,10 @@ describe(@"MPGoogleAdMobBannerIntegrationSuite", ^{
 
             it(@"should tell the delegate and track a click (just once)", ^{
                 verify_fake_received_selectors(delegate, @[@"willPresentModalViewForAd:"]);
-                fakeProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations should equal(@[configuration]);
+                fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations should equal(@[configuration]);
 
                 [fakeAd simulateUserTap];
-                fakeProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations should equal(@[configuration]);
+                fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations should equal(@[configuration]);
             });
 
             context(@"when the user dismisses the modal", ^{
@@ -109,10 +109,10 @@ describe(@"MPGoogleAdMobBannerIntegrationSuite", ^{
 
             it(@"should tell the delegate and track a click (just once)", ^{
                 verify_fake_received_selectors(delegate, @[@"willLeaveApplicationFromAd:"]);
-                fakeProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations should equal(@[configuration]);
+                fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations should equal(@[configuration]);
 
                 [fakeAd simulateUserLeavingApplication];
-                fakeProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations should equal(@[configuration]);
+                fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations should equal(@[configuration]);
             });
         });
     });

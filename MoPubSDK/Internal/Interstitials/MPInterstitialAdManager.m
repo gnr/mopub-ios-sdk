@@ -13,6 +13,7 @@
 #import "MPInterstitialAdController.h"
 #import "MPInterstitialCustomEventAdapter.h"
 #import "MPInstanceProvider.h"
+#import "MPCoreInstanceProvider.h"
 #import "MPInterstitialAdManagerDelegate.h"
 #import "MPLogging.h"
 
@@ -43,7 +44,7 @@
 {
     self = [super init];
     if (self) {
-        self.communicator = [[MPInstanceProvider sharedProvider] buildMPAdServerCommunicatorWithDelegate:self];
+        self.communicator = [[MPCoreInstanceProvider sharedProvider] buildMPAdServerCommunicatorWithDelegate:self];
         self.delegate = delegate;
     }
     return self;
@@ -128,7 +129,7 @@
 {
     self.configuration = configuration;
 
-    MPLogInfo(@"Ad view is fetching ad network type: %@", self.configuration.networkType);
+    MPLogInfo(@"Interstatial ad view is fetching ad network type: %@", self.configuration.networkType);
 
     if ([self.configuration.networkType isEqualToString:@"clear"]) {
         MPLogInfo(@"Ad server response indicated no ad available.");

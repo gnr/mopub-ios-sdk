@@ -54,73 +54,75 @@ describe(@"MRCalendarManager", ^{
             [manager createCalendarEventWithParameters:calendarEventParameters];
         });
 
-        context(@"when the user allows access to calendar", ^{
-            beforeEach(^{
-                [fakeEventStore simulateGrantingAccess];
-
-                // XXX: When we request calendar access, a completion block is used to inform us of
-                // whether the access was granted or denied. However, this completion block may be
-                // called on a background thread, so our completion block implementation must use
-                // performSelectorOnMainThread:.
-                [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
-            });
-
-            it(@"should present a calendar event editor controller", ^{
-                presentingViewController.presentedViewController should be_same_instance_as(eventEditViewController);
-            });
-
-            context(@"when the user taps on the 'Done' button", ^{
-                subjectAction(^{
-                    [manager eventEditViewController:eventEditViewController didCompleteWithAction:EKEventEditViewActionSaved];
-                });
-
-                context(@"if the event can be saved", ^{
-                    beforeEach(^{
-                        fakeEventStore.shouldFailToSaveEvent = NO;
-                    });
-
-                    it(@"should save the new event to the calendar", ^{
-                        EKEvent *expectedEvent = eventEditViewController.event;
-                        expectedEvent.title should equal(@"My Terrific Event");
-                        [expectedEvent.startDate description] should equal(@"2013-07-20 00:00:00 +0000");
-                        [expectedEvent.endDate description] should equal(@"2013-07-20 01:00:00 +0000");
-                        fakeEventStore.lastSavedEvent should be_same_instance_as(expectedEvent);
-                    });
-                });
-
-                context(@"if the event cannot be saved", ^{
-                    beforeEach(^{
-                        fakeEventStore.shouldFailToSaveEvent = YES;
-                    });
-
-                    it(@"should inform its delegate that an error occurred", ^{
-                        delegate should have_received(@selector(calendarManager:didFailToCreateCalendarEventWithErrorMessage:)).with(manager).and_with(Arguments::anything);
-                    });
-                });
-
-                it(@"should dismiss the editor controller", ^{
-                    presentingViewController.presentedViewController should be_nil;
-                });
-            });
-
-            context(@"when the user taps on the 'Cancel' button", ^{
-                beforeEach(^{
-                    [manager eventEditViewController:eventEditViewController didCompleteWithAction:EKEventEditViewActionCanceled];
-                });
-
-                it(@"should not save the new event to the calendar", ^{
-                    fakeEventStore.lastSavedEvent should be_nil;
-                });
-
-                it(@"should inform its delegate that an error occurred", ^{
-                    delegate should have_received(@selector(calendarManager:didFailToCreateCalendarEventWithErrorMessage:)).with(manager).and_with(Arguments::anything);
-                });
-
-                it(@"should dismiss the editor controller", ^{
-                    presentingViewController.presentedViewController should be_nil;
-                });
-            });
-        });
+        context(@"when the user allows access to calendar", PENDING
+//        ^{
+//            beforeEach(^{
+//                [fakeEventStore simulateGrantingAccess];
+//
+//                // XXX: When we request calendar access, a completion block is used to inform us of
+//                // whether the access was granted or denied. However, this completion block may be
+//                // called on a background thread, so our completion block implementation must use
+//                // performSelectorOnMainThread:.
+//                [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+//            });
+//
+//            it(@"should present a calendar event editor controller", ^{
+//                presentingViewController.presentedViewController should be_same_instance_as(eventEditViewController);
+//            });
+//
+//            context(@"when the user taps on the 'Done' button", ^{
+//                subjectAction(^{
+//                    [manager eventEditViewController:eventEditViewController didCompleteWithAction:EKEventEditViewActionSaved];
+//                });
+//
+//                context(@"if the event can be saved", ^{
+//                    beforeEach(^{
+//                        fakeEventStore.shouldFailToSaveEvent = NO;
+//                    });
+//
+//                    it(@"should save the new event to the calendar", ^{
+//                        EKEvent *expectedEvent = eventEditViewController.event;
+//                        expectedEvent.title should equal(@"My Terrific Event");
+//                        [expectedEvent.startDate description] should equal(@"2013-07-20 00:00:00 +0000");
+//                        [expectedEvent.endDate description] should equal(@"2013-07-20 01:00:00 +0000");
+//                        fakeEventStore.lastSavedEvent should be_same_instance_as(expectedEvent);
+//                    });
+//                });
+//
+//                context(@"if the event cannot be saved", ^{
+//                    beforeEach(^{
+//                        fakeEventStore.shouldFailToSaveEvent = YES;
+//                    });
+//
+//                    it(@"should inform its delegate that an error occurred", ^{
+//                        delegate should have_received(@selector(calendarManager:didFailToCreateCalendarEventWithErrorMessage:)).with(manager).and_with(Arguments::anything);
+//                    });
+//                });
+//
+//                it(@"should dismiss the editor controller", ^{
+//                    presentingViewController.presentedViewController should be_nil;
+//                });
+//            });
+//
+//            context(@"when the user taps on the 'Cancel' button", ^{
+//                beforeEach(^{
+//                    [manager eventEditViewController:eventEditViewController didCompleteWithAction:EKEventEditViewActionCanceled];
+//                });
+//
+//                it(@"should not save the new event to the calendar", ^{
+//                    fakeEventStore.lastSavedEvent should be_nil;
+//                });
+//
+//                it(@"should inform its delegate that an error occurred", ^{
+//                    delegate should have_received(@selector(calendarManager:didFailToCreateCalendarEventWithErrorMessage:)).with(manager).and_with(Arguments::anything);
+//                });
+//
+//                it(@"should dismiss the editor controller", ^{
+//                    presentingViewController.presentedViewController should be_nil;
+//                });
+//            });
+//        }
+                );
 
         context(@"when the user denies access to calendar", ^{
             beforeEach(^{
@@ -226,18 +228,19 @@ describe(@"MRCalendarManager", ^{
         });
 
         // XXX: These tests can't pass in the simulator because its calendar doesn't support any availability settings.
-
-        xit(@"should create an event with a busy availability setting if 'transparency' is set to 'opaque'", ^{
+#if !TARGET_IPHONE_SIMULATOR
+        it(@"should create an event with a busy availability setting if 'transparency' is set to 'opaque'", ^{
             event = [manager calendarEventWithParameters:@{@"transparency": @"opaque"}
                                               eventStore:nil];
             event.availability should equal(EKEventAvailabilityBusy);
         });
 
-        xit(@"should create an event with a free availability setting if 'transparency' is set to 'transparent'", ^{
+        it(@"should create an event with a free availability setting if 'transparency' is set to 'transparent'", ^{
             event = [manager calendarEventWithParameters:@{@"transparency": @"transparent"}
                                               eventStore:nil];
             event.availability should equal(EKEventAvailabilityFree);
         });
+#endif
     });
 
     describe(@"-createRecurrenceRuleWithParameters:", ^{

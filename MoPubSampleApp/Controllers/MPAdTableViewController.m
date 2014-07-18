@@ -11,10 +11,26 @@
 #import "MPBannerAdDetailViewController.h"
 #import "MPInterstitialAdDetailViewController.h"
 #import "MPManualAdViewController.h"
+#import "MPMRectBannerAdDetailViewController.h"
+#import "MPLeaderboardBannerAdDetailViewController.h"
+#import "MPNativeAdDetailViewController.h"
+#import "MPGlobal.h"
+#import "MPAdPersistenceManager.h"
+#import "MPAdEntryViewController.h"
+#import "MPNativeAdTableViewController.h"
 
-@interface MPAdTableViewController ()
+typedef enum
+{
+    MPAdTableSection_Banner,
+    MPAdTableSection_Interstitital,
+    MPAdTableSection_Native,
+    MPAdTableSection_Saved
+} MPAdTableSection;
+
+@interface MPAdTableViewController () <UIAlertViewDelegate, UIActionSheetDelegate>
 
 @property (nonatomic, strong) NSArray *sections;
+@property (nonatomic, strong) NSIndexPath *selectedSavedIndexPath;
 
 @end
 
@@ -31,6 +47,12 @@
     self = [super initWithStyle:UITableViewStylePlain];
     if (self) {
         self.sections = sections;
+
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= MP_IOS_7_0
+        if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+            self.edgesForExtendedLayout = UIRectEdgeNone;
+        }
+#endif
     }
     return self;
 }
@@ -51,18 +73,41 @@
     self.tableView.accessibilityLabel = @"Ad Table View";
     [self.tableView reloadData];
 
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Manual"
-                                                                              style:UIBarButtonItemStyleDone
-                                                                             target:self
-                                                                             action:@selector(didTapManualButton:)];
-    self.navigationItem.rightBarButtonItem.accessibilityLabel = @"Manual";
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(didTapNewAdButton:)];
+    self.navigationItem.rightBarButtonItem.accessibilityLabel = @"New Ad";
 
+    UIButton* myInfoButton = [UIButton buttonWithType:UIButtonTypeInfoLight];
+    [myInfoButton addTarget:self action:@selector(infoButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:myInfoButton];
+    
     [super viewDidLoad];
+}
+
+- (void)infoButtonClicked:(id)sender
+{
+    UIAlertView *infoAV = [[UIAlertView alloc] initWithTitle:@"MoPub Sample App"
+                                                     message:[NSString stringWithFormat:@"MoPub SDK Version: %@", MP_SDK_VERSION]
+                                                    delegate:nil
+                                           cancelButtonTitle:@"OK"
+                                           otherButtonTitles:nil];
+    [infoAV show];
 }
 
 - (void)didTapManualButton:(id)sender
 {
     [self.navigationController pushViewController:[[MPManualAdViewController alloc] init] animated:YES];
+}
+
+- (void)didTapNewAdButton:(id)sender
+{
+    [self.navigationController pushViewController:[[MPAdEntryViewController alloc] init] animated:YES];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    
+    [self.tableView reloadData];
 }
 
 #pragma mark - Table view data source
@@ -84,11 +129,16 @@
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
     }
-    cell.textLabel.text = [[self infoAtIndexPath:indexPath] title];
-    cell.detailTextLabel.text = [[self infoAtIndexPath:indexPath] ID];
+    
+    MPAdInfo *info = [self infoAtIndexPath:indexPath];
+    
+    cell.textLabel.text = info.title;
+    cell.detailTextLabel.text = info.ID;
     cell.textLabel.textColor = [UIColor colorWithRed:0.42 green:0.66 blue:0.85 alpha:1];
     cell.detailTextLabel.textColor = [UIColor colorWithRed:0.86 green:0.86 blue:0.86 alpha:1];
 
+    cell.accessoryType = indexPath.section == MPAdTableSection_Saved ? UITableViewCellAccessoryDetailDisclosureButton : UITableViewCellAccessoryNone;
+    
     return cell;
 }
 
@@ -103,14 +153,79 @@
 {
     MPAdInfo *info = [self infoAtIndexPath:indexPath];
     UIViewController *detailViewController = nil;
-    if (info.type == MPAdInfoBanner) {
-        detailViewController = [[MPBannerAdDetailViewController alloc] initWithAdInfo:info];
-    } else if (info.type == MPAdInfoInterstitial) {
-        detailViewController = [[MPInterstitialAdDetailViewController alloc] initWithAdInfo:info];
+
+    switch (info.type) {
+        case MPAdInfoBanner:
+            detailViewController = [[MPBannerAdDetailViewController alloc] initWithAdInfo:info];
+            break;
+        case MPAdInfoMRectBanner:
+            detailViewController = [[MPMRectBannerAdDetailViewController alloc] initWithAdInfo:info];
+            break;
+        case MPAdInfoLeaderboardBanner:
+            detailViewController = [[MPLeaderboardBannerAdDetailViewController alloc] initWithAdInfo:info];
+            break;
+        case MPAdInfoInterstitial:
+            detailViewController = [[MPInterstitialAdDetailViewController alloc] initWithAdInfo:info];
+            break;
+        case MPAdInfoNative:
+            detailViewController = [[MPNativeAdDetailViewController alloc] initWithAdInfo:info];
+            break;
+        case MPAdInfoNativeInTableView:
+            detailViewController = [[MPNativeAdTableViewController alloc] initWithAdInfo:info];
+            break;
+        default:
+            break;
     }
 
     if (detailViewController) {
         [self.navigationController pushViewController:detailViewController animated:YES];
+    }
+}
+
+- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
+{
+    self.selectedSavedIndexPath = indexPath;
+    
+    MPAdInfo *info = [self infoAtIndexPath:indexPath];
+    
+    UIActionSheet *adActionsSheet = [[UIActionSheet alloc] initWithTitle:info.title
+                                                    delegate:self
+                                           cancelButtonTitle:@"Cancel"
+                                      destructiveButtonTitle:@"Delete"
+                                           otherButtonTitles:@"Edit", nil];
+    
+    [adActionsSheet showInView:self.view];
+}
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    MPAdInfo *info = [self infoAtIndexPath:self.selectedSavedIndexPath];
+    
+    if(buttonIndex == actionSheet.destructiveButtonIndex)
+    {
+        UIAlertView *deleteConfirmAV = [[UIAlertView alloc] initWithTitle:@"Confirm Delete"
+                                                                  message:[NSString stringWithFormat:@"Are you sure you want to delete %@?", info.title]
+                                                                 delegate:self
+                                                        cancelButtonTitle:@"No"
+                                                        otherButtonTitles:@"Yes", nil];
+        [deleteConfirmAV show];
+    }
+    else if(buttonIndex == 1) // edit, go to pre-configured ad entry view controller
+    {
+        [self.navigationController pushViewController:[[MPAdEntryViewController alloc] initWithAdInfo:info] animated:YES];
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if(buttonIndex != alertView.cancelButtonIndex)
+    {
+        if(alertView.alertViewStyle == UIAlertViewStyleDefault)
+        {
+            [[MPAdPersistenceManager sharedManager] removeSavedAd:[self infoAtIndexPath:self.selectedSavedIndexPath]];
+        }
+        
+        [self.tableView reloadData];
     }
 }
 

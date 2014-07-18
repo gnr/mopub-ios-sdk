@@ -18,12 +18,12 @@ describe(@"MRPictureManager", ^{
     describe(@"-storePicture:", ^{
         __block FakeMRImageDownloader *imageDownloader;
 
-        context(@"with an invalid URI parameter", ^{
+        context(@"if the provided URL is nil", ^{
             beforeEach(^{
-                [manager storePicture:@{@"uri" : @"••••••"}];
+                [manager storePicture:nil];
             });
 
-            it(@"should inform its delegate that an error occurred", ^{
+            it(@"should inform the delegate that an error occurred", ^{
                 delegate should have_received(@selector(pictureManager:didFailToStorePictureWithErrorMessage:)).with(manager).and_with(Arguments::anything);
             });
         });
@@ -32,7 +32,7 @@ describe(@"MRPictureManager", ^{
             __block UIAlertView *alertView;
 
             beforeEach(^{
-                [manager storePicture:@{@"uri" : @"http://imageuri"}];
+                [manager storePicture:[NSURL URLWithString:@"http://imageuri"]];
                 alertView = [UIAlertView currentAlertView];
             });
 
@@ -57,7 +57,7 @@ describe(@"MRPictureManager", ^{
                     imageDownloader.willSucceed = NO;
                     fakeProvider.fakeImageDownloader = imageDownloader;
 
-                    [manager storePicture:@{@"uri" : @"http://imageuri"}];
+                    [manager storePicture:[NSURL URLWithString:@"http://imageuri"]];
                     [alertView dismissWithOkButton];
                 });
 

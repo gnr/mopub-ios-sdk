@@ -27,7 +27,7 @@ describe(@"MRVideoPlayerManager", ^{
     describe(@"-playVideo:", ^{
         context(@"if the provided URL is a valid video", ^{
             beforeEach(^{
-                [manager playVideo:@{@"uri": @"http://shapeshed.com/examples/HTML5-video-element/video/320x240.m4v"}];
+                [manager playVideo:[NSURL URLWithString:@"http://shapeshed.com/examples/HTML5-video-element/video/320x240.m4v"]];
             });
 
             it(@"should inform the delegate that it will present a video player", ^{
@@ -49,17 +49,13 @@ describe(@"MRVideoPlayerManager", ^{
             });
         });
 
-        context(@"if the provided URL is malformed", ^{
+        context(@"if the provided URL is nil", ^{
             beforeEach(^{
-                [manager playVideo:@{@"uri": @"••••••"}];
+                [manager playVideo:nil];
             });
 
             it(@"should inform the delegate that an error occurred", ^{
                 delegate should have_received(@selector(videoPlayerManager:didFailToPlayVideoWithErrorMessage:)).with(manager).and_with(Arguments::anything);
-            });
-
-            it(@"should not present a video player", ^{
-                presentingViewController.presentedViewController should be_nil;
             });
         });
     });

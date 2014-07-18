@@ -31,10 +31,12 @@
                                  configuration.preferredSize.height);
     }
 
-    self.banner = [[[MRAdView alloc] initWithFrame:adViewFrame
-                                   allowsExpansion:YES
-                                  closeButtonStyle:MRAdViewCloseButtonStyleAdControlled
-                                     placementType:MRAdViewPlacementTypeInline] autorelease];
+    self.banner = [[MPInstanceProvider sharedProvider] buildMRAdViewWithFrame:adViewFrame
+                                                              allowsExpansion:YES
+                                                             closeButtonStyle:MRAdViewCloseButtonStyleAdControlled
+                                                                placementType:MRAdViewPlacementTypeInline
+                                                                     delegate:self];
+    
     self.banner.delegate = self;
     [self.banner loadCreativeWithHTMLString:[configuration adResponseHTMLString]
                                     baseURL:nil];
@@ -53,7 +55,22 @@
     [self.banner rotateToOrientation:newOrientation];
 }
 
-#pragma mark - MPAdWebViewAgentDelegate
+#pragma mark - MRAdViewDelegate
+
+- (CLLocation *)location
+{
+    return [self.delegate location];
+}
+
+- (NSString *)adUnitId
+{
+    return [self.delegate adUnitId];
+}
+
+- (MPAdConfiguration *)adConfiguration
+{
+    return [self.delegate configuration];
+}
 
 - (UIViewController *)viewControllerForPresentingModalView
 {

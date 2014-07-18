@@ -18,6 +18,7 @@ typedef NSUInteger MPAdWebViewEvent;
 
 @class MPAdConfiguration;
 @class MPAdWebView;
+@class CLLocation;
 
 @interface MPAdWebViewAgent : NSObject <UIWebViewDelegate, MPAdDestinationDisplayAgentDelegate>
 
@@ -31,8 +32,8 @@ typedef NSUInteger MPAdWebViewEvent;
 - (void)invokeJavaScriptForEvent:(MPAdWebViewEvent)event;
 - (void)forceRedraw;
 
-- (void)stopHandlingRequests;
-- (void)continueHandlingRequests;
+- (void)enableRequestHandling;
+- (void)disableRequestHandling;
 
 @end
 
@@ -40,6 +41,8 @@ typedef NSUInteger MPAdWebViewEvent;
 
 @protocol MPAdWebViewAgentDelegate <NSObject>
 
+- (NSString *)adUnitId;
+- (CLLocation *)location;
 - (UIViewController *)viewControllerForPresentingModalView;
 - (void)adDidClose:(MPAdWebView *)ad;
 - (void)adDidFinishLoadingAd:(MPAdWebView *)ad;

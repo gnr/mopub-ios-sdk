@@ -1,8 +1,17 @@
 #import "MPURLResolver.h"
 #import "FakeMPURLResolverDelegate.h"
+#import "NSURL+MPAdditions.h"
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
+
+@interface MPURLResolver (Spec)
+
+@property (nonatomic, retain) NSMutableData *responseData;
+
+- (NSStringEncoding)stringEncodingFromContentType:(NSString *)contentType;
+
+@end
 
 SPEC_BEGIN(MPURLResolverSpec)
 
@@ -34,7 +43,7 @@ describe(@"MPURLResolver", ^{
 
             it(@"should make the request using the right user agent", ^{
                 NSURLConnection *lastConnection = [NSURLConnection lastConnection];
-                [[lastConnection.request allHTTPHeaderFields] objectForKey:@"User-Agent"] should equal([fakeProvider userAgent]);
+                [[lastConnection.request allHTTPHeaderFields] objectForKey:@"User-Agent"] should equal([fakeCoreProvider userAgent]);
             });
         });
 
@@ -55,7 +64,7 @@ describe(@"MPURLResolver", ^{
 
             it(@"should make the request using the right user agent", ^{
                 NSURLConnection *lastConnection = [NSURLConnection lastConnection];
-                [[lastConnection.request allHTTPHeaderFields] objectForKey:@"User-Agent"] should equal([fakeProvider userAgent]);
+                [[lastConnection.request allHTTPHeaderFields] objectForKey:@"User-Agent"] should equal([fakeCoreProvider userAgent]);
             });
         });
 
@@ -77,9 +86,95 @@ describe(@"MPURLResolver", ^{
                 delegate.HTMLString should equal(@"Bing it.");
             });
         });
+        
+        context(@"different results for a response's Content-Type charset", ^{
+            it (@"should return the correct encoding", ^{
+                NSString *contentType = @"type=sdlkfjsl; charset=utf-8;";
+                NSStringEncoding encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSUTF8StringEncoding);
+
+                contentType = @"type=sdlkfjsl; charset=UTF-8;";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSUTF8StringEncoding);
+                
+                contentType = @"type=sdlkfjsl; charset=iso-8859-1;";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSISOLatin1StringEncoding);
+                
+                contentType = @"type=sdlkfjsl; charset=windows-1251;";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSWindowsCP1251StringEncoding);
+                
+                contentType = @"type=sdlkfjsl; charset=iso-8859-2;";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSISOLatin2StringEncoding);
+                
+                contentType = @"type=sdlkfjsl; charset=iso-8859-15;";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                //no constant available for iso-8859-15
+                encoding should equal(2147484175);
+                
+                contentType = @"type=sdlkfjsl; charset=windows-1252;";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSWindowsCP1252StringEncoding);
+                
+                contentType = @"type=sdlkfjsl; charset=us-ascii;";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSASCIIStringEncoding);
+                
+                contentType = @"type=sdlkfjsl;";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSUTF8StringEncoding);
+                
+                contentType = @"";
+                encoding = [urlResolver stringEncodingFromContentType:contentType];
+                encoding should equal(NSUTF8StringEncoding);
+            });
+        });
     });
 
     describe(@"when the URL should be opened by the application", ^{
+        context(@"when the scheme is tel", ^{
+            beforeEach(^{
+                url = [NSURL URLWithString:@"tel:5555555555"];
+            });
+
+            it(@"should try to open application URL in application when device can open telephone schemes", ^{
+                [[UIApplication sharedApplication] mp_setCanOpenTelephoneSchemes:YES];
+                spy_on(delegate);
+                [urlResolver startResolvingWithURL:url delegate:delegate];
+                delegate should have_received(@selector(openURLInApplication:)).with(url);
+            });
+
+            it(@"should fail and not call openURLInApplication if device can't open tel schemes", ^{
+                [[UIApplication sharedApplication] mp_setCanOpenTelephoneSchemes:NO];
+                spy_on(delegate);
+                [urlResolver startResolvingWithURL:url delegate:delegate];
+                delegate should_not have_received(@selector(openURLInApplication:)).with(url);
+                delegate should have_received(@selector(failedToResolveURLWithError:)).with(Arguments::any([NSError class]));
+            });
+        });
+
+        context(@"when the scheme is telprompt", ^{
+            beforeEach(^{
+                url = [NSURL URLWithString:@"telprompt:5555555555"];
+            });
+
+            it(@"should try to open application URL in application when device can open telephone schemes", ^{
+                [[UIApplication sharedApplication] mp_setCanOpenTelephoneSchemes:YES];
+                spy_on(delegate);
+                [urlResolver startResolvingWithURL:url delegate:delegate];
+                delegate should have_received(@selector(openURLInApplication:)).with(url);
+            });
+
+            it(@"should fail and not call openURLInApplication if device can't open tel schemes", ^{
+                [[UIApplication sharedApplication] mp_setCanOpenTelephoneSchemes:NO];
+                spy_on(delegate);
+                [urlResolver startResolvingWithURL:url delegate:delegate];
+                delegate should_not have_received(@selector(openURLInApplication:)).with(url);
+                delegate should have_received(@selector(failedToResolveURLWithError:)).with(Arguments::any([NSError class]));
+            });
+        });
         context(@"when the scheme is neither http nor https", ^{
             context(@"when the scheme is mopubnativebrowser://", ^{
                 context(@"when the requested URL is well-formed URL", ^{
@@ -312,6 +407,8 @@ describe(@"MPURLResolver", ^{
             [NSURLConnection lastConnection] should be_nil;
         });
     });
+    
+    describe(@"tests for proper string encoding/decoding", PENDING);
 });
 
 SPEC_END

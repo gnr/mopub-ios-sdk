@@ -13,7 +13,7 @@
 #import "MRPictureManager.h"
 #import "MRVideoPlayerManager.h"
 
-@class MRAdViewDisplayController, MRProperty;
+@class MRAdViewDisplayController, MRProperty, MPAdConfiguration;
 @protocol MRAdViewDelegate;
 
 enum {
@@ -35,6 +35,12 @@ enum {
     MRAdViewCloseButtonStyleAdControlled
 };
 typedef NSUInteger MRAdViewCloseButtonStyle;
+
+enum {
+    MRAdViewAdTypeDefault,
+    MRAdViewAdTypePreCached
+};
+typedef NSUInteger MRAdViewAdType;
 
 @interface MRAdView : UIView <UIWebViewDelegate, MPAdDestinationDisplayAgentDelegate, MRCalendarManagerDelegate, MRPictureManagerDelegate, MRVideoPlayerManagerDelegate> {
     // This view's delegate object.
@@ -72,14 +78,17 @@ typedef NSUInteger MRAdViewCloseButtonStyle;
 
     // Enum indicating whether this view is being used as an inline ad or an interstitial ad.
     MRAdViewPlacementType _placementType;
+
+    // Enum indicating the type of this ad. Default ad or ad that requires pre-caching.
+    MRAdViewAdType _adType;
 }
 
 @property (nonatomic, assign) id<MRAdViewDelegate> delegate;
 @property (nonatomic, assign) BOOL usesCustomCloseButton;
 @property (nonatomic, assign) BOOL expanded;
 @property (nonatomic, retain) MRAdViewDisplayController *displayController;
+@property (nonatomic, assign) MRAdViewAdType adType;
 
-- (id)initWithFrame:(CGRect)frame;
 - (id)initWithFrame:(CGRect)frame allowsExpansion:(BOOL)expansion
    closeButtonStyle:(MRAdViewCloseButtonStyle)style placementType:(MRAdViewPlacementType)type;
 - (void)loadCreativeFromURL:(NSURL *)url;
@@ -88,6 +97,8 @@ typedef NSUInteger MRAdViewCloseButtonStyle;
 - (BOOL)isViewable;
 - (void)rotateToOrientation:(UIInterfaceOrientation)newOrientation;
 - (void)handleMRAIDOpenCallForURL:(NSURL *)URL;
+- (void)enableRequestHandling;
+- (void)disableRequestHandling;
 
 @end
 
@@ -96,6 +107,12 @@ typedef NSUInteger MRAdViewCloseButtonStyle;
 @protocol MRAdViewDelegate <NSObject>
 
 @required
+
+- (NSString *)adUnitId;
+
+- (MPAdConfiguration *)adConfiguration;
+
+- (CLLocation *)location;
 
 // Retrieves the view controller from which modal views should be presented.
 - (UIViewController *)viewControllerForPresentingModalView;

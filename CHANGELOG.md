@@ -1,3 +1,97 @@
+## Version 2.3 (July 17th, 2014)
+
+  - MoPub base SDK is now 64-bit compatible (Please check mediated networks for 64-bit support)
+  - Certified support for InMobi 4.4.1, Greystripe/Conversant 4.3, and AdMob 6.9.3
+  - Additional measures to prevent autoloading deep-links without user interaction for banners
+  - Bug fixes
+    - A cached Millennial Media interstitial will be correctly loaded
+    - Fixed crash if the close button is quickly tapped after tapping an MRAID interstitial
+
+## Version 2.2 (June 19th, 2014)
+
+  - **Native ads mediation**: integration instructions and documentation are available on the [GitHub wiki](https://github.com/mopub/mopub-ios-sdk/wiki/Integrating-Native-Third-Party-Ad-Networks). Facebook and InMobi native ads may be mediated using the MoPub SDK.
+  - **Native ads content filtering**: Added the ability to specify which native ad elements you want to receive from the MoPub Marketplace to optimize bandwidth use and download only required assets, via `MPNativeAdRequestTargeting.desiredAssets`. This feature only works for the six standard Marketplace assets, found in `MPNativeAdConstants.h`. Any additional elements added in direct sold ads will always be sent down in the extras.
+  - Added star rating information to the `MPNativeAd` object, via `MPNativeAd.starRating`. This method returns an `NSNumber` (double value) corresponding to an app's rating on a 5-star scale.
+  - Bug fixes
+    - Handle Millennial Media SDK's `MillennialMediaAdWillTerminateApplication` notification
+    - Ensured that banners never autorefresh until they have been loaded at least once
+
+## Version 2.1 (May 15th, 2014)
+
+  - Improved user privacy protection
+    - Device identifiers are removed from logging output
+  - Improved user protection against auto-dialing ads
+    - Prompt user for confirmation when a `tel` URL is encountered
+  - Updated Millennial Media custom events (Millennial Media SDK 5.2+ only)
+  - Updated Vungle custom event (Vungle SDK 2.0+ only)
+
+### Version 2.1.1 (May 22nd, 2014)
+
+  - Fixed Millennial Media SDK 5.2 banner custom event failover
+
+## Version 2.0 (April 23rd, 2014)
+
+  - Added support for MoPub Native Ads. Please view the integration wiki [here](https://github.com/mopub/mopub-ios-sdk/wiki/Native-Ads-Integration).
+  - Updated the minimum required iOS version to iOS 5.0
+    - Removed `TouchJSON` dependency. `TouchJSON` files may be removed from your project.
+
+## Version 1.17 (November 20, 2013)
+
+  - AdColony Custom Event
+    - Supports AdColony as a custom native ad network for interstitial videos. Note that V4VC (virtual currency reward) is currently not supported. 
+  - Handle ISO Latin-1 site encoding in addition to UTF-8
+  - Bug fixes
+
+### Version 1.17.3.0 (March 20th, 2014)
+
+  - Updated Chartboost custom event (Chartboost SDK 4.0+ only)
+  - Bug fixes
+    - Fixed iOS 7 bug where certain interstitial images may fail to load
+
+### Version 1.17.2.0 (February 20th, 2014)
+
+  - Updated InMobi custom events (InMobi SDK 4.0.3+ only)
+  - Bug fixes
+    - MRAID viewable property now correctly updates on app background and resume
+    - MRAID command urls are no longer re-encoded for processing
+
+### Version 1.17.1.0 (January 23rd, 2014)
+
+  - Sample app improvements
+    - Improved manual ad unit entry view
+    - Save manually entered ad unit ids
+    - Ability to enter keywords for each ad unit
+  - Bug fixes
+    - MRAID `isViewable` command now correctly returns a boolean value
+
+## Version 1.16 (October 15, 2013)
+
+  - Creative Controls
+    - Creative Flagging 
+      - **Important**: ```MPAdAlertGestureRecognizer``` and ```MPAdAlertManager``` classes as well as ```MessageUI.framework``` must be added to your project to enable flagging functionality.
+      - Allows users to report certain inappropriate ad experiences directly to MoPub with a special gesture.
+      - User must swipe back and forth at least four times within the ad view to flag a creative.
+      - Swipes must cover more than ⅓ of the ad width and must be completely horizontal.
+      - Only works for direct sold, Marketplace, and server to server ad network ads.
+    - Blocked Popups
+      - Javascript alert, confirm, and prompt dialogs are blocked.
+    - Blocked Auto-redirects
+      - Ads that automatically redirect users to another page without user interaction are automatically blocked.
+  - MoPub Video Pre-caching
+    - Video ads from the Marketplace will be pre-cached automatically and videos will not be shown until they can play without additional buffering.
+  - Simple Ads Demo Improvements
+    - 300x250 and 728x90 test spots added to the demo app.
+  - Vungle Custom Event
+    - Supports Vungle as a custom native ad network for interstitial videos.
+  - SKStoreProductViewController iOS 7 Orientation Crash Fix
+    - Fixes iOS 7 bug that causes SKStoreProductViewController to crash if the app does not list portrait as a supported orientation.
+  - Log more readable message in response to the "no ads available" server error.
+  - Updated mraid.getVersion() to return 2.0
+
+### Version 1.16.0.1 (October 24, 2013)
+
+  - MRAID commands now properly handle encoded URLs.
+
 ## Version 1.14 (September 12, 2013)
 
   - iOS 7 Gold Master support
@@ -7,6 +101,10 @@
 
 #### Updates to InMobi Integrations
   - **Important**: As of version 1.14.0.0, the InMobi custom events packaged with the MoPub SDK only support InMobi version 4.00 and up. Follow the instructions [here](http://www.inmobi.com/support/art/25856216/22465648/integrating-mopub-with-inmobi-ios-sdk-4-0/) to integrate InMobi version 4.00 and up. If you would like to continue to use a prior version of the InMobi SDK, do not update the custom event files and follow the instructions [here](http://developer.inmobi.com/wiki/index.php?title=MoPub_InMobi_iOS) to integrate.
+
+### Version 1.14.1.0 (September 18, 2013)
+  - Fixed an issue causing certain interstitials to be incorrectly centered or sized
+  - Updated the SDK bundle to include the Millennial Media 5.1.1 SDK
 
 ## Version 1.13 (August 22, 2013)
 

@@ -7,19 +7,26 @@
 
 #import <Foundation/Foundation.h>
 
-typedef enum {
+typedef NS_ENUM(NSInteger, MPAdInfoType) {
     MPAdInfoBanner,
-    MPAdInfoInterstitial
-} MPAdInfoType;
+    MPAdInfoInterstitial,
+    MPAdInfoMRectBanner,
+    MPAdInfoLeaderboardBanner,
+    MPAdInfoNative,
+    MPAdInfoNativeInTableView
+};
 
-@interface MPAdInfo : NSObject
+@interface MPAdInfo : NSObject <NSCoding>
 
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *ID;
 @property (nonatomic, assign) MPAdInfoType type;
+@property (nonatomic, copy) NSString *keywords;
 
 + (NSArray *)bannerAds;
 + (NSArray *)interstitialAds;
++ (NSArray *)nativeAds;
 + (MPAdInfo *)infoWithTitle:(NSString *)title ID:(NSString *)ID type:(MPAdInfoType)type;
++ (NSArray *)supportedAdTypeNames;
 
 @end

@@ -8,6 +8,8 @@
 
 #import "UIWebView+MPAdditions.h"
 
+NSString *const kJavaScriptDisableDialogSnippet = @"window.alert = function() { }; window.prompt = function() { }; window.confirm = function() { };";
+
 @implementation UIWebView (MPAdditions)
 
 /*
@@ -36,6 +38,14 @@
         scrollView.scrollEnabled = scrollable;
         scrollView.bounces = scrollable;
     }
+}
+
+/*
+ * Redefine alert, prompt, and confirm to do nothing
+ */
+- (void)disableJavaScriptDialogs
+{
+    [self stringByEvaluatingJavaScriptFromString:kJavaScriptDisableDialogSnippet];
 }
 
 @end

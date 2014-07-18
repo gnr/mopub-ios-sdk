@@ -14,13 +14,13 @@ The MoPub SDK is distributed as source code that you can include in your applica
 
 - **[MoPub Full SDK.zip](http://bit.ly/180lUGi)**
 
-  Includes everything you need to serve HTML and MRAID MoPub advertisiments *and* built-in support for three major third party ad networks - [iAd](http://advertising.apple.com/), [Google AdMob](http://www.google.com/ads/admob/), and [Millennial Media](http://www.millennialmedia.com/) - including the required third party binaries.
+  Includes everything you need to serve HTML, MRAID, and Native MoPub advertisiments *and* built-in support for three major third party ad networks - [iAd](http://advertising.apple.com/), [Google AdMob](http://www.google.com/ads/admob/), and [Millennial Media](http://www.millennialmedia.com/) - including the required third party binaries.
 
 - **[MoPub Base SDK.zip](http://bit.ly/19pPR1r)**
 
-  Includes everything you need to serve HTML and MRAID MoPub advertisements.  No third party ad networks are included.
+  Includes everything you need to serve HTML, MRAID, and Native MoPub advertisements.  No third party ad networks are included.
 
-The current version of the SDK is 1.14.0.0
+The current version of the SDK is 2.3.0
 
 ## Integrate
 
@@ -28,29 +28,18 @@ Integration instructions are available on the [wiki](https://github.com/mopub/mo
 
 More detailed class documentation is available in the repo under the `ClassDocumentation` folder.  This can be viewed [online too](http://htmlpreview.github.com/?https://github.com/mopub/mopub-ios-sdk/blob/master/ClassDocumentation/index.html).
 
-
 ## New in this Version
 
 Please view the [changelog](https://github.com/mopub/mopub-ios-sdk/blob/master/CHANGELOG.md) for details.
 
-- iOS 7 Gold Master Support for MoPub SDK
-- Verified compatibility with Millennial 5.1.1
-- Verified compatibility with InMobi 4.00
-
-### Changes to InMobi Custom Event Integrations
-**Important**: As of version 1.14.0.0, the InMobi custom events packaged with the MoPub SDK only support InMobi version 4.00 and up. Follow the instructions [here](http://www.inmobi.com/support/art/25856216/22465648/integrating-mopub-with-inmobi-ios-sdk-4-0/) to integrate InMobi version 4.00 and up. If you would like to continue to use a prior version of the InMobi SDK, do not update the custom event files and follow the instructions [here](http://developer.inmobi.com/wiki/index.php?title=MoPub_InMobi_iOS) to integrate.   
-
-### Changes to Third Party Ad Network Integrations
-**Important**: As of version 1.12.0.0 all third party ad network integrations are now implemented as custom events instead of adapters.
-
->  Please remove any old adapters from your code and use the new custom events located in the `AdNetworkSupport` folder instead.
-
-More information can be found on the [wiki](https://github.com/mopub/mopub-ios-sdk/wiki/Getting-Started#adding-third-party-ad-networks).
-
+- MoPub base SDK is now 64-bit compatible (Please check mediated networks for 64-bit support)
+- Certified support for InMobi 4.4.1, Greystripe/Conversant 4.3, and AdMob 6.9.3
+- Additional measures to prevent autoloading deep-links without user interaction for banners
+- Bug fixes
 
 ## Requirements
 
-iOS 4.3 and up
+iOS 5.0 and up
 
 ## License
 

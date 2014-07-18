@@ -8,7 +8,7 @@
 #import "MPBannerCustomEvent.h"
 
 /*
- * Compatible only with version 5.1.0 of the Millennial Media SDK.
+ * Certified with versions 5.2 and 5.3 of the Millennial Media SDK.
  */
 
 @interface MPMillennialBannerCustomEvent : MPBannerCustomEvent

@@ -20,6 +20,4 @@ Temp
 proxy.log
 Scripts/*.mov
 tmp_sdk
-AdNetworkSupport/**/SDK/*.h
-AdNetworkSupport/**/SDK/*.a
 node_modules
