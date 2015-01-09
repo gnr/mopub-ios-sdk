@@ -1,6 +1,7 @@
 #import "MPImageDownloadQueue.h"
 #import "NSOperationQueue+MPSpecs.h"
 #import "MPNativeCache+Specs.h"
+#import "CedarAsync.h"
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
@@ -12,10 +13,14 @@ describe(@"MPImageDownloadQueue", ^{
     __block MPImageDownloadQueue *downloadQueue;
 
     beforeEach(^{
-        downloadQueue = [[[MPImageDownloadQueue alloc] init] autorelease];
+        downloadQueue = [[MPImageDownloadQueue alloc] init];
 
         [NSOperationQueue mp_resetCancelAllOperationsCalled];
         [NSOperationQueue mp_resetAddOperationWithBlockCount];
+    });
+
+    afterEach(^{
+         downloadQueue = nil;
     });
 
     context(@"when adding any amount of image URLs", ^{
@@ -26,9 +31,7 @@ describe(@"MPImageDownloadQueue", ^{
                 completionCalled = YES;
             }];
 
-            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
-
-            completionCalled should be_truthy();
+            in_time(completionCalled) should be_truthy();
         });
     });
 
@@ -36,7 +39,7 @@ describe(@"MPImageDownloadQueue", ^{
         __block NSArray *urls;
         beforeEach(^{
             // images from our sample native ad
-            NSURL *image = [NSURL URLWithString:@"https://pbs.twimg.com/profile_images/431949550836662272/A6Ck-0Gx_normal.png"];
+            NSURL *image = [NSURL URLWithString:kMPSpecsTestImageURL];
             urls = @[image, image];
 
             [NSOperationQueue mp_resetCancelAllOperationsCalled];
@@ -86,9 +89,7 @@ describe(@"MPImageDownloadQueue", ^{
                     retrievedData = [[MPNativeCache sharedCache] retrieveDataForKey:testURL.absoluteString];
                 }];
 
-                [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
-
-                retrievedData should equal(cachedData);
+                in_time(retrievedData) should equal(cachedData);
             });
         });
 
@@ -99,9 +100,7 @@ describe(@"MPImageDownloadQueue", ^{
                     retrievedData = [[MPNativeCache sharedCache] retrieveDataForKey:testURL.absoluteString];
                 } useCachedImage:YES];
 
-                [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
-
-                retrievedData should equal(cachedData);
+                in_time(retrievedData) should equal(cachedData);
             });
         });
 

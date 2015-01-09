@@ -21,13 +21,13 @@ describe(@"MPInterstitialAdControllerIntegrationSuite", ^{
         interstitial = [MPInterstitialAdController interstitialAdControllerForAdUnitId:@"custom_event_interstitial"];
         interstitial.delegate = delegate;
 
-        presentingController = [[[UIViewController alloc] init] autorelease];
+        presentingController = [[UIViewController alloc] init];
 
         [interstitial loadAd];
         communicator = fakeCoreProvider.lastFakeMPAdServerCommunicator;
         communicator.loadedURL.absoluteString should contain(@"custom_event_interstitial");
 
-        fakeInterstitialCustomEvent = [[[FakeInterstitialCustomEvent alloc] init] autorelease];
+        fakeInterstitialCustomEvent = [[FakeInterstitialCustomEvent alloc] init];
         fakeProvider.fakeInterstitialCustomEvent = fakeInterstitialCustomEvent;
 
         configuration = [MPAdConfigurationFactory defaultInterstitialConfigurationWithCustomEventClassName:@"FakeInterstitialCustomEvent"];
@@ -89,13 +89,13 @@ describe(@"MPInterstitialAdControllerIntegrationSuite", ^{
                     [delegate reset_sent_messages];
                 });
 
-                it(@"should track only one click, no matter how many interactions there are, and shouldn't tell the delegate anything", ^{
+                it(@"should track only one click, no matter how many interactions there are, and should tell the delegate for each click", ^{
                     [fakeInterstitialCustomEvent simulateUserTap];
                     fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations.count should equal(1);
                     [fakeInterstitialCustomEvent simulateUserTap];
                     fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations.count should equal(1);
 
-                    delegate.sent_messages should be_empty;
+                    delegate.sent_messages.count should equal(2);
                 });
             });
 
@@ -108,7 +108,7 @@ describe(@"MPInterstitialAdControllerIntegrationSuite", ^{
                     [delegate reset_sent_messages];
                     [fakeCoreProvider.sharedFakeMPAnalyticsTracker reset];
 
-                    newPresentingController = [[[UIViewController alloc] init] autorelease];
+                    newPresentingController = [[UIViewController alloc] init];
                     [interstitial showFromViewController:newPresentingController];
                     [fakeInterstitialCustomEvent simulateInterstitialFinishedAppearing];
                 });

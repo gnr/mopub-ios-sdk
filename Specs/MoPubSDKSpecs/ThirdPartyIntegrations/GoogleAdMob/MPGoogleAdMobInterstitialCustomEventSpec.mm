@@ -19,17 +19,17 @@ describe(@"MPGoogleAdMobInterstitialCustomEvent", ^{
         request = nice_fake_for([GADRequest class]);
         fakeProvider.fakeGADInterstitialRequest = request;
 
-        interstitial = [[[FakeGADInterstitial alloc] init] autorelease];
+        interstitial = [[FakeGADInterstitial alloc] init];
         fakeProvider.fakeGADInterstitial = interstitial.masquerade;
 
-        event = [[[MPGoogleAdMobInterstitialCustomEvent alloc] init] autorelease];
+        event = [[MPGoogleAdMobInterstitialCustomEvent alloc] init];
         event.delegate = delegate;
 
-        location = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1f, 21.2f)
+        location = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1, 21.2)
                                                   altitude:11
-                                        horizontalAccuracy:12.3f
+                                        horizontalAccuracy:12.3
                                           verticalAccuracy:10
-                                                 timestamp:[NSDate date]] autorelease];
+                                                 timestamp:[NSDate date]];
         delegate stub_method("location").and_return(location);
 
         [event requestInterstitialWithCustomEventInfo:@{@"adUnitID":@"g00g1e"}];
@@ -48,7 +48,7 @@ describe(@"MPGoogleAdMobInterstitialCustomEvent", ^{
         it(@"should load the interstitial with a proper request object", ^{
             interstitial.loadedRequest should equal(request);
 
-            request should have_received(@selector(setLocationWithLatitude:longitude:accuracy:)).with(37.1f).and_with(21.2f).and_with(12.3f);
+            request should have_received(@selector(setLocationWithLatitude:longitude:accuracy:)).with((CGFloat)37.1).and_with((CGFloat)21.2).and_with((CGFloat)12.3);
             request should have_received(@selector(setTestDevices:)).with(@[GAD_SIMULATOR_ID]);
         });
     });

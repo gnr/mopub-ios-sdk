@@ -20,20 +20,20 @@ describe(@"MPGoogleAdMobBannerCustomEvent", ^{
         request = nice_fake_for([GADRequest class]);
         fakeProvider.fakeGADBannerRequest = request;
 
-        banner = [[[FakeGADBannerView alloc] init] autorelease];
+        banner = [[FakeGADBannerView alloc] init];
         fakeProvider.fakeGADBannerView = banner.masquerade;
 
-        event = [[[MPGoogleAdMobBannerCustomEvent alloc] init] autorelease];
+        event = [[MPGoogleAdMobBannerCustomEvent alloc] init];
         event.delegate = delegate;
 
-        location = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1f, 21.2f)
+        location = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1, 21.2)
                                                   altitude:11
-                                        horizontalAccuracy:12.3f
+                                        horizontalAccuracy:12.3
                                           verticalAccuracy:10
-                                                 timestamp:[NSDate date]] autorelease];
+                                                 timestamp:[NSDate date]];
         delegate stub_method("location").and_return(location);
 
-        viewController = [[[UIViewController alloc] init] autorelease];
+        viewController = [[UIViewController alloc] init];
         delegate stub_method("viewControllerForPresentingModalView").and_return(viewController);
 
         [event requestAdWithSize:CGSizeZero customEventInfo:@{@"adUnitID":@"g00g1e", @"adWidth":@728, @"adHeight":@90}];
@@ -53,7 +53,7 @@ describe(@"MPGoogleAdMobBannerCustomEvent", ^{
         it(@"should load the banner with a proper request object", ^{
             banner.loadedRequest should equal(request);
 
-            request should have_received(@selector(setLocationWithLatitude:longitude:accuracy:)).with(37.1f).and_with(21.2f).and_with(12.3f);
+            request should have_received(@selector(setLocationWithLatitude:longitude:accuracy:)).with((CGFloat)37.1).and_with((CGFloat)21.2).and_with((CGFloat)12.3);
             request should have_received(@selector(setTestDevices:)).with(@[GAD_SIMULATOR_ID]);
         });
 

@@ -3,6 +3,7 @@
 #import "MPIdentityProvider.h"
 #import "MPGlobal.h"
 #import "TWTweetComposeViewController+MPSpecs.h"
+#import "FakeMPGeolocationProvider.h"
 #import <CoreLocation/CoreLocation.h>
 
 using namespace Cedar::Matchers;
@@ -113,43 +114,64 @@ describe(@"MPAdServerURLBuilder", ^{
     });
 
     it(@"should process location", ^{
+        FakeMPGeolocationProvider *fakeGeolocationProvider = [[FakeMPGeolocationProvider alloc] init];
+        fakeCoreProvider.fakeGeolocationProvider = fakeGeolocationProvider;
+
         URL = [MPAdServerURLBuilder URLWithAdUnitID:@"guy"
                                            keywords:nil
                                            location:nil
                                             testing:YES];
         URL.absoluteString should_not contain(@"&ll=");
+        URL.absoluteString should_not contain(@"&llsdk=");
 
-        CLLocation *validLocationNoAccuracy = [[[CLLocation alloc] initWithLatitude:10.1 longitude:-40.23] autorelease];
+        CLLocation *validLocationNoAccuracy = [[CLLocation alloc] initWithLatitude:10.1 longitude:-40.23];
         URL = [MPAdServerURLBuilder URLWithAdUnitID:@"guy"
                                            keywords:nil
                                            location:validLocationNoAccuracy
                                             testing:YES];
         URL.absoluteString should contain(@"&ll=10.1,-40.23");
         URL.absoluteString should_not contain(@"&lla=");
+        URL.absoluteString should_not contain(@"&llsdk=");
 
-        CLLocation *validLocationWithAccuracy = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(10.1, -40.23)
+        CLLocation *validLocationWithAccuracy = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(10.1, -40.23)
                                                                                altitude:30.4
                                                                      horizontalAccuracy:500.1
                                                                        verticalAccuracy:60
-                                                                              timestamp:[NSDate date]] autorelease];
+                                                                              timestamp:[NSDate date]];
         URL = [MPAdServerURLBuilder URLWithAdUnitID:@"guy"
                                            keywords:nil
                                            location:validLocationWithAccuracy
                                             testing:YES];
         URL.absoluteString should contain(@"&ll=10.1,-40.23");
         URL.absoluteString should contain(@"&lla=500.1");
+        URL.absoluteString should_not contain(@"&llsdk=");
 
-        CLLocation *invalidLocation = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(10.1, -40.23)
+        CLLocation *invalidLocation = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(10.1, -40.23)
                                                                      altitude:30.4
                                                            horizontalAccuracy:-1
                                                              verticalAccuracy:60
-                                                                    timestamp:[NSDate date]] autorelease];
+                                                                    timestamp:[NSDate date]];
         URL = [MPAdServerURLBuilder URLWithAdUnitID:@"guy"
                                            keywords:nil
                                            location:invalidLocation
                                             testing:YES];
         URL.absoluteString should_not contain(@"&ll=");
         URL.absoluteString should_not contain(@"&lla=");
+        URL.absoluteString should_not contain(@"&llsdk=");
+
+        // When the SDK's own location provider has retrieved location data, the URL builder should
+        // use that, rather than the developer-supplied location.
+
+        CLLocation *locationFromProvider = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(42, -42) altitude:10 horizontalAccuracy:60 verticalAccuracy:60 timestamp:[NSDate date]];
+        fakeGeolocationProvider.fakeLastKnownLocation = locationFromProvider;
+
+        URL = [MPAdServerURLBuilder URLWithAdUnitID:@"guy"
+                                           keywords:nil
+                                           location:validLocationWithAccuracy
+                                            testing:YES];
+        URL.absoluteString should contain(@"&ll=42,-42");
+        URL.absoluteString should contain(@"&lla=60");
+        URL.absoluteString should contain(@"&llsdk=1");
     });
 
     it(@"should have mraid", ^{
@@ -178,7 +200,7 @@ describe(@"MPAdServerURLBuilder", ^{
     });
 
     it(@"should provide connectivity information", ^{
-        fakeCoreProvider.fakeMPReachability = [[[FakeMPReachability alloc] init] autorelease];
+        fakeCoreProvider.fakeMPReachability = [[FakeMPReachability alloc] init];
         FakeMPReachability *fakeMPReachability = fakeCoreProvider.fakeMPReachability;
         fakeMPReachability.hasWifi = YES;
 
@@ -310,6 +332,34 @@ describe(@"MPAdServerURLBuilder", ^{
                                           desiredAssets:nil];
 
             URL.absoluteString should_not contain(@"&assets");
+        });
+    });
+
+    describe(@"ad placer sequence position", ^{
+        it(@"should append desired sequence position to URL", ^{
+            NSArray *assets = [NSArray arrayWithObjects:@"a", @"b", @"c", nil];
+            URL = [MPAdServerURLBuilder URLWithAdUnitID:@"guy"
+                                               keywords:nil
+                                               location:nil
+                                   versionParameterName:@"nsv"
+                                                version:MP_SDK_VERSION
+                                                testing:NO
+                                          desiredAssets:assets
+                                             adSequence:0];
+
+            URL.absoluteString should contain(@"&seq=0");
+        });
+
+        it(@"should append not sequence position as a query parameter if none is set", ^{
+            URL = [MPAdServerURLBuilder URLWithAdUnitID:@"guy"
+                                               keywords:nil
+                                               location:nil
+                                   versionParameterName:@"nsv"
+                                                version:MP_SDK_VERSION
+                                                testing:NO
+                                          desiredAssets:nil];
+
+            URL.absoluteString should_not contain(@"&seq");
         });
     });
 });

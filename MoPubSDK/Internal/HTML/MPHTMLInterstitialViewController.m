@@ -12,7 +12,7 @@
 
 @interface MPHTMLInterstitialViewController ()
 
-@property (nonatomic, retain) MPAdWebView *backingView;
+@property (nonatomic, strong) MPAdWebView *backingView;
 
 @end
 
@@ -29,11 +29,8 @@
 {
     self.backingViewAgent.delegate = nil;
     self.backingViewAgent.customMethodDelegate = nil;
-    self.backingViewAgent = nil;
 
     self.backingView.delegate = nil;
-    self.backingView = nil;
-    [super dealloc];
 }
 
 - (void)viewDidLoad
@@ -132,7 +129,7 @@
 
 - (void)adActionWillBegin:(MPAdWebView *)ad
 {
-    // No need to tell anyone.
+    [self.delegate interstitialDidReceiveTapEvent:self];
 }
 
 - (void)adActionWillLeaveApplication:(MPAdWebView *)ad

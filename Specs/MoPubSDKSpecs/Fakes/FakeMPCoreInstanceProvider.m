@@ -6,10 +6,11 @@
 //
 
 #import "FakeMPCoreInstanceProvider.h"
+#import "MPGeolocationProvider.h"
 
 @interface FakeMPCoreInstanceProvider ()
 
-@property (nonatomic, assign) NSMutableArray *fakeTimers;
+@property (nonatomic, strong) NSMutableArray *fakeTimers;
 
 @end
 
@@ -42,7 +43,7 @@
 
 - (MPAdServerCommunicator *)buildMPAdServerCommunicatorWithDelegate:(id<MPAdServerCommunicatorDelegate>)delegate
 {
-    self.lastFakeMPAdServerCommunicator = [[[FakeMPAdServerCommunicator alloc] initWithDelegate:delegate] autorelease];
+    self.lastFakeMPAdServerCommunicator = [[FakeMPAdServerCommunicator alloc] initWithDelegate:delegate];
     return self.lastFakeMPAdServerCommunicator;
 }
 
@@ -65,6 +66,22 @@
 }
 
 #pragma mark - Utilities
+
+- (MPGeolocationProvider *)sharedMPGeolocationProvider
+{
+    return [self returnFake:self.fakeGeolocationProvider
+                     orCall:^id{
+                         return [super sharedMPGeolocationProvider];
+                     }];
+}
+
+- (CLLocationManager *)buildCLLocationManager
+{
+    return [self returnFake:self.fakeLocationManager
+                     orCall:^{
+                         return [super buildCLLocationManager];
+                     }];
+}
 
 - (MPAdAlertManager *)buildMPAdAlertManagerWithDelegate:(id<MPAdAlertManagerDelegate>)delegate
 {
@@ -118,7 +135,7 @@
 - (FakeMPAnalyticsTracker *)sharedFakeMPAnalyticsTracker
 {
     return [self singletonForClass:[MPAnalyticsTracker class] provider:^id{
-        return [[[FakeMPAnalyticsTracker alloc] init] autorelease];
+        return [[FakeMPAnalyticsTracker alloc] init];
     }];
 }
 

@@ -11,7 +11,6 @@
 #import <MediaPlayer/MediaPlayer.h>
 #import "MPAdWebView.h"
 #import "FakeMPTimer.h"
-#import "MRJavaScriptEventEmitter.h"
 #import "MRImageDownloader.h"
 #import "MRBundleManager.h"
 
@@ -162,17 +161,32 @@
 
 #pragma mark - MRAID
 
-- (MRAdView *)buildMRAdViewWithFrame:(CGRect)frame
-                     allowsExpansion:(BOOL)allowsExpansion
-                    closeButtonStyle:(MRAdViewCloseButtonStyle)style
-                       placementType:(MRAdViewPlacementType)type
-                            delegate:(id<MRAdViewDelegate>)delegate
+- (MPClosableView *)buildMRAIDMPClosableViewWithFrame:(CGRect)frame webView:(UIWebView *)webView delegate:(id<MPClosableViewDelegate>)delegate
 {
-    if (self.fakeMRAdView != nil) {
-        self.fakeMRAdView.delegate = delegate;
-        return self.fakeMRAdView;
+    if (self.fakeMRAIDMPClosableView != nil) {
+        return self.fakeMRAIDMPClosableView;
     } else {
-        return [super buildMRAdViewWithFrame:frame allowsExpansion:allowsExpansion closeButtonStyle:style placementType:type delegate:delegate];
+        return [super buildMRAIDMPClosableViewWithFrame:frame webView:webView delegate:delegate];
+    }
+}
+
+- (MRController *)buildBannerMRControllerWithFrame:(CGRect)frame delegate:(id<MRControllerDelegate>)delegate
+{
+    if (self.fakeMRController) {
+        self.fakeMRController.delegate = delegate;
+        return self.fakeMRController;
+    } else {
+        return [super buildBannerMRControllerWithFrame:frame delegate:delegate];
+    }
+}
+
+- (MRController *)buildInterstitialMRControllerWithFrame:(CGRect)frame delegate:(id<MRControllerDelegate>)delegate
+{
+    if (self.fakeMRController) {
+        self.fakeMRController.delegate = delegate;
+        return self.fakeMRController;
+    } else {
+        return [super buildInterstitialMRControllerWithFrame:frame delegate:delegate];
     }
 }
 
@@ -184,19 +198,19 @@
                      }];
 }
 
+- (MRBridge *)buildMRBridgeWithWebView:(UIWebView *)webView delegate:(id<MRBridgeDelegate>)delegate
+{
+    return [self returnFake:self.fakeMRBridge
+                     orCall:^{
+                         return [super buildMRBridgeWithWebView:webView delegate:delegate];
+                     }];
+}
+
 - (UIWebView *)buildUIWebViewWithFrame:(CGRect)frame
 {
     return [self returnFake:self.fakeUIWebView orCall:^id{
         return [super buildUIWebViewWithFrame:frame];
     }];
-}
-
-- (MRJavaScriptEventEmitter *)buildMRJavaScriptEventEmitterWithWebView:(UIWebView *)webView
-{
-    return [self returnFake:self.fakeMRJavaScriptEventEmitter
-                     orCall:^{
-                        return [super buildMRJavaScriptEventEmitterWithWebView:webView];
-                     }];
 }
 
 - (MRCalendarManager *)buildMRCalendarManagerWithDelegate:(id<MRCalendarManagerDelegate>)delegate
@@ -260,6 +274,50 @@
                      }];
 }
 
+- (MRNativeCommandHandler *)buildMRNativeCommandhandlerWithDelegate:(id<MRNativeCommandHandlerDelegate>)delegate
+{
+    return [self returnFake:self.fakeNativeCommandHandler
+                     orCall:^{
+                         return [super buildMRNativeCommandHandlerWithDelegate:delegate];
+                     }];
+}
+
+#pragma mark - Native
+
+- (MPNativeAdSource *)buildNativeAdSourceWithDelegate:(id<MPNativeAdSourceDelegate>)delegate
+{
+    if (self.fakeNativeAdSource) {
+        self.fakeNativeAdSource.delegate = delegate;
+        return self.fakeNativeAdSource;
+    } else {
+        return [super buildNativeAdSourceWithDelegate:delegate];
+    }
+}
+
+- (MPNativePositionSource *)buildNativePositioningSource
+{
+    return [self returnFake:self.fakeNativePositioningSource
+                     orCall:^{
+                         return [super buildNativePositioningSource];
+                     }];
+}
+
+- (MPStreamAdPlacementData *)buildStreamAdPlacementDataWithPositioning:(MPAdPositioning *)positioning
+{
+    return [self returnFake:self.fakeStreamAdPlacementData
+                     orCall:^{
+                         return [super buildStreamAdPlacementDataWithPositioning:positioning];
+                     }];
+}
+
+- (MPStreamAdPlacer *)buildStreamAdPlacerWithViewController:(UIViewController *)controller adPositioning:(MPAdPositioning *)positioning defaultAdRenderingClass:defaultAdRenderingClass
+{
+    return [self returnFake:self.fakeStreamAdPlacer
+                     orCall:^{
+                         return [super buildStreamAdPlacerWithViewController:controller adPositioning:positioning defaultAdRenderingClass:defaultAdRenderingClass];
+                     }];
+}
+
 #pragma mark - Third Party Integrations
 
 #pragma mark iAd
@@ -277,16 +335,6 @@
     return [self returnFake:self.fakeADInterstitialAd
                      orCall:^{
                          return [super buildADInterstitialAd];
-                     }];
-}
-
-#pragma mark Chartboost
-
-- (Chartboost *)buildChartboost
-{
-    return [self returnFake:self.fakeChartboost
-                     orCall:^{
-                         return [super buildChartboost];
                      }];
 }
 

@@ -15,13 +15,13 @@ describe(@"MRVideoPlayerManager", ^{
     beforeEach(^{
         delegate = nice_fake_for(@protocol(MRVideoPlayerManagerDelegate));
 
-        presentingViewController = [[[UIViewController alloc] init] autorelease];
+        presentingViewController = [[UIViewController alloc] init];
         delegate stub_method("viewControllerForPresentingVideoPlayer").and_return(presentingViewController);
 
         moviePlayerViewController = nice_fake_for([MPMoviePlayerViewController class]);
         fakeProvider.fakeMoviePlayerViewController = moviePlayerViewController;
 
-        manager = [[[MRVideoPlayerManager alloc] initWithDelegate:delegate] autorelease];
+        manager = [[MRVideoPlayerManager alloc] initWithDelegate:delegate];
     });
 
     describe(@"-playVideo:", ^{
@@ -45,6 +45,11 @@ describe(@"MRVideoPlayerManager", ^{
 
                 it(@"should inform the delegate that it dismissed the video player", ^{
                     delegate should have_received(@selector(videoPlayerManagerDidDismissVideo:)).with(manager);
+                });
+
+                context(@"when playing the video again and dismissing", ^{
+                    xit(@"should only tell the delegate once", ^{
+                    });
                 });
             });
         });

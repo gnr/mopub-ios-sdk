@@ -12,8 +12,8 @@
 
 @interface MPAdBrowserController ()
 
-@property (nonatomic, retain) UIActionSheet *actionSheet;
-@property (nonatomic, retain) NSString *HTMLString;
+@property (nonatomic, strong) UIActionSheet *actionSheet;
+@property (nonatomic, strong) NSString *HTMLString;
 @property (nonatomic, assign) int webViewLoadCount;
 
 - (void)dismissActionSheet;
@@ -43,21 +43,20 @@
 
 - (id)initWithURL:(NSURL *)URL HTMLString:(NSString *)HTMLString delegate:(id<MPAdBrowserControllerDelegate>)delegate
 {
-    if (self = [super initWithNibName:@"MPAdBrowserController" bundle:nil])
-    {
+    if (self = [super initWithNibName:@"MPAdBrowserController" bundle:nil]) {
         self.delegate = delegate;
         self.URL = URL;
         self.HTMLString = HTMLString;
 
         MPLogDebug(@"Ad browser (%p) initialized with URL: %@", self, self.URL);
 
-        self.webView = [[[UIWebView alloc] initWithFrame:CGRectZero] autorelease];
+        self.webView = [[UIWebView alloc] initWithFrame:CGRectZero];
         self.webView.autoresizingMask = UIViewAutoresizingFlexibleWidth |
         UIViewAutoresizingFlexibleHeight;
         self.webView.delegate = self;
         self.webView.scalesPageToFit = YES;
 
-        self.spinner = [[[UIActivityIndicatorView alloc] initWithFrame:CGRectZero] autorelease];
+        self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectZero];
         [self.spinner sizeToFit];
         self.spinner.hidesWhenStopped = YES;
 
@@ -68,20 +67,7 @@
 
 - (void)dealloc
 {
-    self.HTMLString = nil;
-    self.delegate = nil;
     self.webView.delegate = nil;
-    self.webView = nil;
-    self.URL = nil;
-    self.backButton = nil;
-    self.forwardButton = nil;
-    self.refreshButton = nil;
-    self.safariButton = nil;
-    self.doneButton = nil;
-    self.spinner = nil;
-    self.spinnerItem = nil;
-    self.actionSheet = nil;
-    [super dealloc];
 }
 
 - (void)viewDidLoad
@@ -164,17 +150,14 @@
 
 - (IBAction)safari
 {
-    if (self.actionSheet)
-    {
+    if (self.actionSheet) {
         [self dismissActionSheet];
-    }
-    else
-    {
-        self.actionSheet = [[[UIActionSheet alloc] initWithTitle:nil
+    } else {
+        self.actionSheet = [[UIActionSheet alloc] initWithTitle:nil
                                                        delegate:self
                                               cancelButtonTitle:@"Cancel"
                                          destructiveButtonTitle:nil
-                                              otherButtonTitles:@"Open in Safari", nil] autorelease];
+                                              otherButtonTitles:@"Open in Safari", nil];
 
         if ([UIActionSheet instancesRespondToSelector:@selector(showFromBarButtonItem:animated:)]) {
             [self.actionSheet showFromBarButtonItem:self.safariButton animated:YES];
@@ -196,8 +179,7 @@
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     self.actionSheet = nil;
-    if (buttonIndex == 0)
-    {
+    if (buttonIndex == 0) {
         // Open in Safari.
         [[UIApplication sharedApplication] openURL:self.URL];
     }
@@ -284,7 +266,7 @@
 
     UIImage *image = [[UIImage alloc] initWithCGImage:imageRef];
     CGImageRelease(imageRef);
-    return [image autorelease];
+    return image;
 }
 
 - (UIImage *)forwardArrowImage
@@ -305,7 +287,7 @@
 
     UIImage *image = [[UIImage alloc] initWithCGImage:imageRef];
     CGImageRelease(imageRef);
-    return [image autorelease];
+    return image;
 }
 
 #pragma mark -

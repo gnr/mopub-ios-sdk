@@ -18,20 +18,20 @@ describe(@"MPGoogleAdMobBannerIntegrationSuite", ^{
     __block FakeMPAdServerCommunicator *communicator;
 
     beforeEach(^{
-        presentingController = [[[UIViewController alloc] init] autorelease];
+        presentingController = [[UIViewController alloc] init];
         delegate = nice_fake_for(@protocol(MPAdViewDelegate));
         delegate stub_method(@selector(viewControllerForPresentingModalView)).and_return(presentingController);
 
-        banner = [[[MPAdView alloc] initWithAdUnitId:@"admob_event" size:MOPUB_BANNER_SIZE] autorelease];
+        banner = [[MPAdView alloc] initWithAdUnitId:@"admob_event" size:MOPUB_BANNER_SIZE];
         banner.delegate = delegate;
-        banner.location = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1f, 21.2f)
+        banner.location = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1, 21.2)
                                                          altitude:11
-                                               horizontalAccuracy:12.3f
+                                               horizontalAccuracy:12.3
                                                  verticalAccuracy:10
-                                                        timestamp:[NSDate date]] autorelease];
+                                                        timestamp:[NSDate date]];
         [banner loadAd];
 
-        fakeAd = [[[FakeGADBannerView alloc] initWithFrame:CGRectMake(0,0,20,30)] autorelease];
+        fakeAd = [[FakeGADBannerView alloc] initWithFrame:CGRectMake(0,0,20,30)];
         fakeProvider.fakeGADBannerView = fakeAd.masquerade;
         fakeGADBannerRequest = nice_fake_for([GADRequest class]);
         fakeProvider.fakeGADBannerRequest = fakeGADBannerRequest;
@@ -47,7 +47,7 @@ describe(@"MPGoogleAdMobBannerIntegrationSuite", ^{
 
     it(@"should ask the ad to load", ^{
         fakeAd.adUnitID should equal(@"g00g1e");
-        fakeGADBannerRequest should have_received(@selector(setLocationWithLatitude:longitude:accuracy:)).with(37.1f).and_with(21.2f).and_with(12.3f);
+        fakeGADBannerRequest should have_received(@selector(setLocationWithLatitude:longitude:accuracy:)).with((CGFloat)37.1).and_with((CGFloat)21.2).and_with((CGFloat)12.3);
         fakeAd.rootViewController should equal(presentingController);
     });
 

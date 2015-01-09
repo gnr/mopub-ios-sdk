@@ -18,19 +18,19 @@ describe(@"MPInMobiInterstitialIntegrationSuite", ^{
 
     beforeEach(^{
         [InMobi initialize:@"YOUR_INMOBI_APP_ID"];
-        
+
         delegate = nice_fake_for(@protocol(MPInterstitialAdControllerDelegate));
 
         interstitial = [MPInterstitialAdController interstitialAdControllerForAdUnitId:@"inmobi_interstitial"];
         interstitial.delegate = delegate;
 
-        presentingController = [[[UIViewController alloc] init] autorelease];
+        presentingController = [[UIViewController alloc] init];
 
-        location = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1, 21.2)
+        location = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37.1, 21.2)
                                                   altitude:11
                                         horizontalAccuracy:12.3
                                           verticalAccuracy:10
-                                                 timestamp:[NSDate date]] autorelease];
+                                                 timestamp:[NSDate date]];
         interstitial.location = location;
 
         // request an Ad
@@ -39,7 +39,7 @@ describe(@"MPInMobiInterstitialIntegrationSuite", ^{
         communicator.loadedURL.absoluteString should contain(@"inmobi_interstitial");
 
         // prepare the fake and tell the injector about it
-        inMobi = [[[FakeIMAdInterstitial alloc] init] autorelease];
+        inMobi = [[FakeIMAdInterstitial alloc] init];
         fakeProvider.fakeIMAdInterstitial = inMobi;
 
         // receive the configuration -- this will create an adapter which will use our fake interstitial
@@ -56,7 +56,7 @@ describe(@"MPInMobiInterstitialIntegrationSuite", ^{
         it(@"should configure InMobi properly and start fetching the interstitial", ^{
             inMobi.appId should equal(@"YOUR_INMOBI_APP_ID");
         });
-        
+
         it(@"should not tell the delegate anything, nor should it be ready", ^{
             delegate.sent_messages should be_empty;
             interstitial.ready should equal(NO);
@@ -101,14 +101,14 @@ describe(@"MPInMobiInterstitialIntegrationSuite", ^{
                         [delegate reset_sent_messages];
                     });
 
-                    it(@"should track only one click, no matter how many interactions there are, and shouldn't tell the delegate anything", ^{
+                    it(@"should track only one click, no matter how many interactions there are, and should tell the delegate about each click", ^{
                         [inMobi simulateUserTap];
                         fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations.count should equal(1);
 
                         [inMobi simulateUserTap];
                         fakeCoreProvider.sharedFakeMPAnalyticsTracker.trackedClickConfigurations.count should equal(1);
 
-                        delegate.sent_messages.count should equal(0);
+                        delegate.sent_messages.count should equal(2);
                     });
                 });
 

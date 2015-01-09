@@ -8,14 +8,16 @@
 #import "MPAdServerURLBuilder.h"
 
 #import "MPConstants.h"
+#import "MPGeolocationProvider.h"
 #import "MPGlobal.h"
 #import "MPKeywordProvider.h"
 #import "MPIdentityProvider.h"
 #import "MPCoreInstanceProvider.h"
 #import "MPReachability.h"
 
-NSString * const kMoPubInterfaceOrientationPortrait = @"p";
-NSString * const kMoPubInterfaceOrientationLandscape = @"l";
+static NSString * const kMoPubInterfaceOrientationPortrait = @"p";
+static NSString * const kMoPubInterfaceOrientationLandscape = @"l";
+static NSInteger const kAdSequenceNone = -1;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +39,7 @@ NSString * const kMoPubInterfaceOrientationLandscape = @"l";
 + (NSString *)queryParameterForDeviceName;
 + (NSString *)queryParameterForTwitterAvailability;
 + (NSString *)queryParameterForDesiredAdAssets:(NSArray *)assets;
++ (NSString *)queryParameterForAdSequence:(NSInteger)adSequence;
 + (BOOL)advertisingTrackingEnabled;
 
 @end
@@ -67,6 +70,27 @@ NSString * const kMoPubInterfaceOrientationLandscape = @"l";
                    testing:(BOOL)testing
              desiredAssets:(NSArray *)assets
 {
+
+
+    return [self URLWithAdUnitID:adUnitID
+                        keywords:keywords
+                        location:location
+            versionParameterName:versionParameterName
+                         version:version
+                         testing:testing
+                   desiredAssets:assets
+                      adSequence:kAdSequenceNone];
+}
+
++ (NSURL *)URLWithAdUnitID:(NSString *)adUnitID
+                  keywords:(NSString *)keywords
+                  location:(CLLocation *)location
+      versionParameterName:(NSString *)versionParameterName
+                   version:(NSString *)version
+                   testing:(BOOL)testing
+             desiredAssets:(NSArray *)assets
+                adSequence:(NSInteger)adSequence
+{
     NSString *URLString = [NSString stringWithFormat:@"http://%@/m/ad?v=%@&udid=%@&id=%@&%@=%@",
                            testing ? HOSTNAME_FOR_TESTING : HOSTNAME,
                            MP_SERVER_VERSION,
@@ -90,6 +114,7 @@ NSString * const kMoPubInterfaceOrientationLandscape = @"l";
     URLString = [URLString stringByAppendingString:[self queryParameterForDeviceName]];
     URLString = [URLString stringByAppendingString:[self queryParameterForTwitterAvailability]];
     URLString = [URLString stringByAppendingString:[self queryParameterForDesiredAdAssets:assets]];
+    URLString = [URLString stringByAppendingString:[self queryParameterForAdSequence:adSequence]];
 
     return [NSURL URLWithString:URLString];
 }
@@ -152,14 +177,25 @@ NSString * const kMoPubInterfaceOrientationLandscape = @"l";
 {
     NSString *result = @"";
 
-    if (location && location.horizontalAccuracy >= 0) {
-        result = [NSString stringWithFormat:@"&ll=%@,%@",
-                  [NSNumber numberWithDouble:location.coordinate.latitude],
-                  [NSNumber numberWithDouble:location.coordinate.longitude]];
+    CLLocation *bestLocation = location;
+    CLLocation *locationFromProvider = [[[MPCoreInstanceProvider sharedProvider] sharedMPGeolocationProvider] lastKnownLocation];
 
-        if (location.horizontalAccuracy) {
+    if (locationFromProvider) {
+        bestLocation = locationFromProvider;
+    }
+
+    if (bestLocation && bestLocation.horizontalAccuracy >= 0) {
+        result = [NSString stringWithFormat:@"&ll=%@,%@",
+                  [NSNumber numberWithDouble:bestLocation.coordinate.latitude],
+                  [NSNumber numberWithDouble:bestLocation.coordinate.longitude]];
+
+        if (bestLocation.horizontalAccuracy) {
             result = [result stringByAppendingFormat:@"&lla=%@",
-                      [NSNumber numberWithDouble:location.horizontalAccuracy]];
+                      [NSNumber numberWithDouble:bestLocation.horizontalAccuracy]];
+        }
+
+        if (bestLocation == locationFromProvider) {
+            result = [result stringByAppendingString:@"&llsdk=1"];
         }
     }
 
@@ -241,6 +277,11 @@ NSString * const kMoPubInterfaceOrientationLandscape = @"l";
 {
     NSString *concatenatedAssets = [assets componentsJoinedByString:@","];
     return [concatenatedAssets length] ? [NSString stringWithFormat:@"&assets=%@", concatenatedAssets] : @"";
+}
+
++ (NSString *)queryParameterForAdSequence:(NSInteger)adSequence
+{
+    return (adSequence >= 0) ? [NSString stringWithFormat:@"&seq=%ld", (long)adSequence] : @"";
 }
 
 + (BOOL)advertisingTrackingEnabled

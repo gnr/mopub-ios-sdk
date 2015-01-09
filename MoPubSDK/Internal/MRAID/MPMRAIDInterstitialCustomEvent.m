@@ -11,7 +11,7 @@
 
 @interface MPMRAIDInterstitialCustomEvent ()
 
-@property (nonatomic, retain) MPMRAIDInterstitialViewController *interstitial;
+@property (nonatomic, strong) MPMRAIDInterstitialViewController *interstitial;
 
 @end
 
@@ -24,16 +24,15 @@
     MPLogInfo(@"Loading MoPub MRAID interstitial");
     self.interstitial = [[MPInstanceProvider sharedProvider] buildMPMRAIDInterstitialViewControllerWithDelegate:self
                                                                                                   configuration:[self.delegate configuration]];
-    [self.interstitial setCloseButtonStyle:MPInterstitialCloseButtonStyleAdControlled];
+
+    // The MRAID ad view will handle the close button so we don't need the MPInterstitialViewController's close button.
+    [self.interstitial setCloseButtonStyle:MPInterstitialCloseButtonStyleAlwaysHidden];
     [self.interstitial startLoading];
 }
 
 - (void)dealloc
 {
     self.interstitial.delegate = nil;
-    self.interstitial = nil;
-
-    [super dealloc];
 }
 
 - (void)showInterstitialFromRootViewController:(UIViewController *)controller
@@ -87,6 +86,12 @@
 {
     MPLogInfo(@"MoPub MRAID interstitial did disappear");
     [self.delegate interstitialCustomEventDidDisappear:self];
+}
+
+- (void)interstitialDidReceiveTapEvent:(MPInterstitialViewController *)interstitial
+{
+    MPLogInfo(@"MoPub MRAID interstitial did receive tap event");
+    [self.delegate interstitialCustomEventDidReceiveTapEvent:self];
 }
 
 - (void)interstitialWillLeaveApplication:(MPInterstitialViewController *)interstitial

@@ -8,7 +8,8 @@
 @class CLLocation;
 
 /**
- * The MPNativeAdRequestTargeting class is used to attach targeting information to MPNativeAdRequests.
+ * The `MPNativeAdRequestTargeting` class is used to attach targeting information to
+ * `MPNativeAdRequest` objects.
  */
 
 @interface MPNativeAdRequestTargeting : NSObject
@@ -48,6 +49,6 @@
  *
  * The MoPub ad server will attempt to only return the assets in desiredAssets.
  */
-@property (nonatomic, retain) NSSet *desiredAssets;
+@property (nonatomic, strong) NSSet *desiredAssets;
 
 @end

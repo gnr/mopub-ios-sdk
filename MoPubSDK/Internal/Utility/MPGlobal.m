@@ -2,7 +2,6 @@
 //  MPGlobal.m
 //  MoPub
 //
-//  Created by Andrew He on 5/5/11.
 //  Copyright 2011 MoPub, Inc. All rights reserved.
 //
 
@@ -16,8 +15,8 @@
 #import <sys/sysctl.h>
 
 BOOL MPViewHasHiddenAncestor(UIView *view);
-BOOL MPViewIsDescendantOfKeyWindow(UIView *view);
-BOOL MPViewIntersectsKeyWindow(UIView *view);
+UIWindow *MPViewGetParentWindow(UIView *view);
+BOOL MPViewIntersectsParentWindow(UIView *view);
 NSString *MPSHA1Digest(NSString *string);
 
 UIInterfaceOrientation MPInterfaceOrientation()
@@ -31,13 +30,12 @@ UIWindow *MPKeyWindow()
 }
 
 CGFloat MPStatusBarHeight() {
-    if ([UIApplication sharedApplication].statusBarHidden) return 0.0;
+    if ([UIApplication sharedApplication].statusBarHidden) return 0.0f;
 
-    UIInterfaceOrientation orientation = MPInterfaceOrientation();
+    CGFloat width = CGRectGetWidth([UIApplication sharedApplication].statusBarFrame);
+    CGFloat height = CGRectGetHeight([UIApplication sharedApplication].statusBarFrame);
 
-    return UIInterfaceOrientationIsLandscape(orientation) ?
-        CGRectGetWidth([UIApplication sharedApplication].statusBarFrame) :
-        CGRectGetHeight([UIApplication sharedApplication].statusBarFrame);
+    return (width < height) ? width : height;
 }
 
 CGRect MPApplicationFrame()
@@ -54,8 +52,7 @@ CGRect MPScreenBounds()
 {
     CGRect bounds = [UIScreen mainScreen].bounds;
 
-    if (UIInterfaceOrientationIsLandscape(MPInterfaceOrientation()))
-    {
+    if (UIInterfaceOrientationIsLandscape(MPInterfaceOrientation()) && [[UIDevice currentDevice].systemVersion compare:@"8.0"] == NSOrderedAscending) {
         CGFloat width = bounds.size.width;
         bounds.size.width = bounds.size.height;
         bounds.size.height = width;
@@ -67,11 +64,11 @@ CGRect MPScreenBounds()
 CGFloat MPDeviceScaleFactor()
 {
     if ([[UIScreen mainScreen] respondsToSelector:@selector(displayLinkWithTarget:selector:)] &&
-        [[UIScreen mainScreen] respondsToSelector:@selector(scale)])
-    {
+        [[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
         return [[UIScreen mainScreen] scale];
+    } else {
+        return 1.0;
     }
-    else return 1.0;
 }
 
 NSDictionary *MPDictionaryFromQueryString(NSString *query) {
@@ -94,8 +91,7 @@ NSString *MPSHA1Digest(NSString *string)
     CC_SHA1([data bytes], (CC_LONG)[data length], digest);
 
     NSMutableString *output = [NSMutableString stringWithCapacity:CC_SHA1_DIGEST_LENGTH * 2];
-    for (int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++)
-    {
+    for (int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++) {
         [output appendFormat:@"%02x", digest[i]];
     }
 
@@ -107,15 +103,13 @@ BOOL MPViewIsVisible(UIView *view)
     // In order for a view to be visible, it:
     // 1) must not be hidden,
     // 2) must not have an ancestor that is hidden,
-    // 3) must be a descendant of the key window, and
-    // 4) must be within the frame of the key window.
+    // 3) must be within the frame of its parent window.
     //
     // Note: this function does not check whether any part of the view is obscured by another view.
 
     return (!view.hidden &&
             !MPViewHasHiddenAncestor(view) &&
-            MPViewIsDescendantOfKeyWindow(view) &&
-            MPViewIntersectsKeyWindow(view));
+            MPViewIntersectsParentWindow(view));
 }
 
 BOOL MPViewHasHiddenAncestor(UIView *view)
@@ -128,25 +122,48 @@ BOOL MPViewHasHiddenAncestor(UIView *view)
     return NO;
 }
 
-BOOL MPViewIsDescendantOfKeyWindow(UIView *view)
+UIWindow *MPViewGetParentWindow(UIView *view)
 {
     UIView *ancestor = view.superview;
-    UIWindow *keyWindow = MPKeyWindow();
     while (ancestor) {
-        if (ancestor == keyWindow) return YES;
+        if ([ancestor isKindOfClass:[UIWindow class]]) {
+            return (UIWindow *)ancestor;
+        }
         ancestor = ancestor.superview;
     }
-    return NO;
+    return nil;
 }
 
-BOOL MPViewIntersectsKeyWindow(UIView *view)
+BOOL MPViewIntersectsParentWindow(UIView *view)
 {
-    UIWindow *keyWindow = MPKeyWindow();
+    UIWindow *parentWindow = MPViewGetParentWindow(view);
+
+    if (parentWindow == nil) {
+        return NO;
+    }
 
     // We need to call convertRect:toView: on this view's superview rather than on this view itself.
-    CGRect viewFrameInWindowCoordinates = [view.superview convertRect:view.frame toView:keyWindow];
+    CGRect viewFrameInWindowCoordinates = [view.superview convertRect:view.frame toView:parentWindow];
 
-    return CGRectIntersectsRect(viewFrameInWindowCoordinates, keyWindow.frame);
+    return CGRectIntersectsRect(viewFrameInWindowCoordinates, parentWindow.frame);
+}
+
+BOOL MPViewIntersectsParentWindowWithPercent(UIView *view, CGFloat percentVisible)
+{
+    UIWindow *parentWindow = MPViewGetParentWindow(view);
+
+    if (parentWindow == nil) {
+        return NO;
+    }
+
+    // We need to call convertRect:toView: on this view's superview rather than on this view itself.
+    CGRect viewFrameInWindowCoordinates = [view.superview convertRect:view.frame toView:parentWindow];
+    CGRect intersection = CGRectIntersection(viewFrameInWindowCoordinates, parentWindow.frame);
+
+    CGFloat intersectionArea = CGRectGetWidth(intersection) * CGRectGetHeight(intersection);
+    CGFloat originalArea = CGRectGetWidth(view.bounds) * CGRectGetHeight(view.bounds);
+
+    return intersectionArea >= (originalArea * percentVisible);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,12 +172,12 @@ BOOL MPViewIntersectsKeyWindow(UIView *view)
 
 - (NSString *)URLEncodedString
 {
-    NSString *result = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL,
+    NSString *result = (NSString *)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(NULL,
                                                                            (CFStringRef)self,
                                                                            NULL,
                                                                            (CFStringRef)@"!*'();:@&=+$,/?%#[]<>",
-                                                                           kCFStringEncodingUTF8);
-    return [result autorelease];
+                                                                           kCFStringEncodingUTF8));
+    return result;
 }
 
 @end
@@ -168,6 +185,52 @@ BOOL MPViewIntersectsKeyWindow(UIView *view)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @implementation UIDevice (MPAdditions)
+
+- (BOOL)supportsOrientationMask:(UIInterfaceOrientationMask)orientationMask
+{
+    NSArray *supportedOrientations = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"UISupportedInterfaceOrientations"];
+
+    if (orientationMask & UIInterfaceOrientationMaskLandscape) {
+        if ([supportedOrientations containsObject:@"UIInterfaceOrientationLandscapeLeft"] || [supportedOrientations containsObject:@"UIInterfaceOrientationLandscapeRight"]) {
+            return YES;
+        }
+    }
+
+    if (orientationMask & UIInterfaceOrientationMaskPortrait) {
+        if ([supportedOrientations containsObject:@"UIInterfaceOrientationPortrait"]) {
+            return YES;
+        }
+    }
+
+    if (orientationMask & UIInterfaceOrientationMaskPortraitUpsideDown) {
+        if ([supportedOrientations containsObject:@"UIInterfaceOrientationPortraitUpsideDown"]) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
+- (BOOL)doesOrientation:(UIInterfaceOrientation)orientation matchOrientationMask:(UIInterfaceOrientationMask)orientationMask
+{
+    BOOL supportsLandscape = (orientationMask & UIInterfaceOrientationMaskLandscape) > 0;
+    BOOL supportsPortrait = (orientationMask & UIInterfaceOrientationMaskPortrait) > 0;
+    BOOL supportsPortraitUpsideDown = (orientationMask & UIInterfaceOrientationMaskPortraitUpsideDown) > 0;
+
+    if (supportsLandscape && (orientation == UIInterfaceOrientationLandscapeLeft || orientation == UIInterfaceOrientationLandscapeRight)) {
+        return YES;
+    }
+
+    if (supportsPortrait && (orientation == UIInterfaceOrientationPortrait)) {
+        return YES;
+    }
+
+    if (supportsPortraitUpsideDown && (orientation == UIInterfaceOrientationPortraitUpsideDown)) {
+        return YES;
+    }
+
+    return NO;
+}
 
 - (NSString *)hardwareDeviceName
 {
@@ -182,12 +245,23 @@ BOOL MPViewIntersectsKeyWindow(UIView *view)
 
 @end
 
+@implementation UIApplication (MPAdditions)
+
+- (void)mp_preIOS7setApplicationStatusBarHidden:(BOOL)hidden
+{
+    // Hiding the status bar should use a fade effect.
+    // Displaying the status bar should use no animation.
+    UIStatusBarAnimation animation = hidden ?
+    UIStatusBarAnimationFade : UIStatusBarAnimationNone;
+    [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:animation];
+}
+@end
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @interface MPTelephoneConfirmationController ()
 
-@property (nonatomic, retain) UIAlertView *alertView;
-@property (nonatomic, retain) NSURL *telephoneURL;
+@property (nonatomic, strong) UIAlertView *alertView;
+@property (nonatomic, strong) NSURL *telephoneURL;
 @property (nonatomic, copy) MPTelephoneConfirmationControllerClickHandler clickHandler;
 
 @end
@@ -199,7 +273,6 @@ BOOL MPViewIntersectsKeyWindow(UIView *view)
     if (![url mp_hasTelephoneScheme] && ![url mp_hasTelephonePromptScheme]) {
         // Shouldn't be here as the url must have a tel or telPrompt scheme.
         MPLogError(@"Processing URL as a telephone URL when %@ doesn't follow the tel:// or telprompt:// schemes", url.absoluteString);
-        [self release];
         return nil;
     }
 
@@ -211,7 +284,6 @@ BOOL MPViewIntersectsKeyWindow(UIView *view)
             phoneNumber = [url resourceSpecifier];
             if ([phoneNumber length] == 0) {
                 MPLogError(@"Invalid telelphone URL: %@.", url.absoluteString);
-                [self release];
                 return nil;
             }
         }
@@ -238,11 +310,6 @@ BOOL MPViewIntersectsKeyWindow(UIView *view)
 {
     self.alertView.delegate = nil;
     [self.alertView dismissWithClickedButtonIndex:0 animated:YES];
-    self.alertView = nil;
-
-    self.clickHandler = nil;
-    self.telephoneURL = nil;
-    [super dealloc];
 }
 
 - (void)show

@@ -14,7 +14,7 @@
 
 @interface MPInterstitialAdController () <MPInterstitialAdManagerDelegate>
 
-@property (nonatomic, retain) MPInterstitialAdManager *manager;
+@property (nonatomic, strong) MPInterstitialAdManager *manager;
 
 + (NSMutableArray *)sharedInterstitials;
 - (id)initWithAdUnitId:(NSString *)adUnitId;
@@ -41,16 +41,7 @@
 
 - (void)dealloc
 {
-    self.delegate = nil;
-
     [self.manager setDelegate:nil];
-    self.manager = nil;
-
-    self.adUnitId = nil;
-    self.keywords = nil;
-    self.location = nil;
-
-    [super dealloc];
 }
 
 #pragma mark - Public
@@ -71,7 +62,7 @@
 
         // Create a new ad controller for this ad unit ID if one doesn't already exist.
         if (!interstitial) {
-            interstitial = [[[[self class] alloc] initWithAdUnitId:adUnitId] autorelease];
+            interstitial = [[[self class] alloc] initWithAdUnitId:adUnitId];
             [interstitials addObject:interstitial];
         }
 
@@ -99,7 +90,7 @@
                   @"a nil view controller was passed to -showFromViewController:.");
         return;
     }
-    
+
     if (![controller.view.window isKeyWindow]) {
         MPLogWarn(@"Attempted to present an interstitial ad in non-key window. The ad may not render properly");
     }
@@ -115,7 +106,7 @@
 
     @synchronized(self) {
         if (!sharedInterstitials) {
-            sharedInterstitials = [[NSMutableArray array] retain];
+            sharedInterstitials = [NSMutableArray array];
         }
     }
 
@@ -181,6 +172,13 @@
 {
     if ([self.delegate respondsToSelector:@selector(interstitialDidExpire:)]) {
         [self.delegate interstitialDidExpire:self];
+    }
+}
+
+- (void)managerDidReceiveTapEventFromInterstitial:(MPInterstitialAdManager *)manager
+{
+    if ([self.delegate respondsToSelector:@selector(interstitialDidReceiveTapEvent:)]) {
+        [self.delegate interstitialDidReceiveTapEvent:self];
     }
 }
 

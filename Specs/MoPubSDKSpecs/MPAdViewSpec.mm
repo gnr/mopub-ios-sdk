@@ -1,5 +1,5 @@
 #import "MPAdView.h"
-#import "MRAdView.h"
+#import "MPClosableView.h"
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
@@ -10,17 +10,17 @@ describe(@"MPAdView", ^{
     __block MPAdView *adView;
 
     beforeEach(^{
-        adView = [[[MPAdView alloc] initWithAdUnitId:@"foo" size:MOPUB_BANNER_SIZE] autorelease];
+        adView = [[MPAdView alloc] initWithAdUnitId:@"foo" size:MOPUB_BANNER_SIZE];
     });
 
     describe(@"loadAd", ^{
         it(@"should tell its manager to begin loading", ^{
             adView.keywords = @"hi=4";
-            adView.location = [[[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(20, 20)
+            adView.location = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(20, 20)
                                                              altitude:10
                                                    horizontalAccuracy:100
                                                      verticalAccuracy:200
-                                                            timestamp:[NSDate date]] autorelease];
+                                                            timestamp:[NSDate date]];
             adView.testing = YES;
             [adView loadAd];
 
@@ -54,18 +54,15 @@ describe(@"MPAdView", ^{
 
         context(@"when there is a content view", ^{
             it(@"should return the size of the content view", ^{
-                [adView setAdContentView:[[[UIView alloc] initWithFrame:CGRectMake(0, 0, 40, 50)] autorelease]];
+                [adView setAdContentView:[[UIView alloc] initWithFrame:CGRectMake(0, 0, 40, 50)]];
                 [adView adContentViewSize] should equal(CGSizeMake(40, 50));
             });
         });
 
         context(@"when the content view is an MRAID view", ^{
             it(@"should return the original size of the ad view (don't ask)", ^{
-                MRAdView *mrAdView = [[MPInstanceProvider sharedProvider] buildMRAdViewWithFrame:CGRectMake(0, 0, 40, 50)
-                                                                                 allowsExpansion:YES
-                                                                                closeButtonStyle:MRAdViewCloseButtonStyleAdControlled
-                                                                                   placementType:MRAdViewPlacementTypeInline
-                                                                                        delegate:nil];
+                MPClosableView *mrAdView = [[MPInstanceProvider sharedProvider] buildMRAIDMPClosableViewWithFrame:CGRectMake(0, 0, 40, 50) webView:nil delegate:nil];
+
                 [adView setAdContentView:mrAdView];
                 [adView adContentViewSize] should equal(MOPUB_BANNER_SIZE);
             });
