@@ -166,6 +166,17 @@ BOOL MPViewIntersectsParentWindowWithPercent(UIView *view, CGFloat percentVisibl
     return intersectionArea >= (originalArea * percentVisible);
 }
 
+NSString *MPResourcePathForResource(NSString *resourceName)
+{
+#ifdef MP_FABRIC
+    // We store all assets inside a bundle for Fabric.
+    return [@"MoPub.bundle" stringByAppendingPathComponent:resourceName];
+#else
+    // When using open source, the resources just live in the main bundle.
+    return resourceName;
+#endif
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @implementation NSString (MPAdditions)
@@ -185,52 +196,6 @@ BOOL MPViewIntersectsParentWindowWithPercent(UIView *view, CGFloat percentVisibl
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @implementation UIDevice (MPAdditions)
-
-- (BOOL)supportsOrientationMask:(UIInterfaceOrientationMask)orientationMask
-{
-    NSArray *supportedOrientations = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"UISupportedInterfaceOrientations"];
-
-    if (orientationMask & UIInterfaceOrientationMaskLandscape) {
-        if ([supportedOrientations containsObject:@"UIInterfaceOrientationLandscapeLeft"] || [supportedOrientations containsObject:@"UIInterfaceOrientationLandscapeRight"]) {
-            return YES;
-        }
-    }
-
-    if (orientationMask & UIInterfaceOrientationMaskPortrait) {
-        if ([supportedOrientations containsObject:@"UIInterfaceOrientationPortrait"]) {
-            return YES;
-        }
-    }
-
-    if (orientationMask & UIInterfaceOrientationMaskPortraitUpsideDown) {
-        if ([supportedOrientations containsObject:@"UIInterfaceOrientationPortraitUpsideDown"]) {
-            return YES;
-        }
-    }
-
-    return NO;
-}
-
-- (BOOL)doesOrientation:(UIInterfaceOrientation)orientation matchOrientationMask:(UIInterfaceOrientationMask)orientationMask
-{
-    BOOL supportsLandscape = (orientationMask & UIInterfaceOrientationMaskLandscape) > 0;
-    BOOL supportsPortrait = (orientationMask & UIInterfaceOrientationMaskPortrait) > 0;
-    BOOL supportsPortraitUpsideDown = (orientationMask & UIInterfaceOrientationMaskPortraitUpsideDown) > 0;
-
-    if (supportsLandscape && (orientation == UIInterfaceOrientationLandscapeLeft || orientation == UIInterfaceOrientationLandscapeRight)) {
-        return YES;
-    }
-
-    if (supportsPortrait && (orientation == UIInterfaceOrientationPortrait)) {
-        return YES;
-    }
-
-    if (supportsPortraitUpsideDown && (orientation == UIInterfaceOrientationPortraitUpsideDown)) {
-        return YES;
-    }
-
-    return NO;
-}
 
 - (NSString *)hardwareDeviceName
 {
@@ -255,6 +220,64 @@ BOOL MPViewIntersectsParentWindowWithPercent(UIView *view, CGFloat percentVisibl
     UIStatusBarAnimationFade : UIStatusBarAnimationNone;
     [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:animation];
 }
+
+- (BOOL)mp_supportsOrientationMask:(UIInterfaceOrientationMask)orientationMask
+{
+    NSArray *supportedOrientations = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"UISupportedInterfaceOrientations"];
+
+    if (orientationMask & UIInterfaceOrientationMaskLandscapeLeft) {
+        if ([supportedOrientations containsObject:@"UIInterfaceOrientationLandscapeLeft"]) {
+            return YES;
+        }
+    }
+
+    if (orientationMask & UIInterfaceOrientationMaskLandscapeRight) {
+        if ([supportedOrientations containsObject:@"UIInterfaceOrientationLandscapeRight"]) {
+            return YES;
+        }
+    }
+
+    if (orientationMask & UIInterfaceOrientationMaskPortrait) {
+        if ([supportedOrientations containsObject:@"UIInterfaceOrientationPortrait"]) {
+            return YES;
+        }
+    }
+
+    if (orientationMask & UIInterfaceOrientationMaskPortraitUpsideDown) {
+        if ([supportedOrientations containsObject:@"UIInterfaceOrientationPortraitUpsideDown"]) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
+- (BOOL)mp_doesOrientation:(UIInterfaceOrientation)orientation matchOrientationMask:(UIInterfaceOrientationMask)orientationMask
+{
+    BOOL supportsLandscapeLeft = (orientationMask & UIInterfaceOrientationMaskLandscapeLeft) > 0;
+    BOOL supportsLandscapeRight = (orientationMask & UIInterfaceOrientationMaskLandscapeRight) > 0;
+    BOOL supportsPortrait = (orientationMask & UIInterfaceOrientationMaskPortrait) > 0;
+    BOOL supportsPortraitUpsideDown = (orientationMask & UIInterfaceOrientationMaskPortraitUpsideDown) > 0;
+
+    if (supportsLandscapeLeft && orientation == UIInterfaceOrientationLandscapeLeft) {
+        return YES;
+    }
+
+    if (supportsLandscapeRight && orientation == UIInterfaceOrientationLandscapeRight) {
+        return YES;
+    }
+
+    if (supportsPortrait && orientation == UIInterfaceOrientationPortrait) {
+        return YES;
+    }
+
+    if (supportsPortraitUpsideDown && orientation == UIInterfaceOrientationPortraitUpsideDown) {
+        return YES;
+    }
+
+    return NO;
+}
+
 @end
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -1,3 +1,21 @@
+## Version 3.6 (April 3rd, 2015)
+
+  - **Bug fixes**.
+    - Fixed crash caused by some MRAID ads attempting to set an orientation that the app doesn't support.
+    
+## Version 3.5 (March 10th, 2015)
+
+  - **Deprecated custom event class methods and constants for setting ad network parameters**.
+  - **Changed banner minimum refresh time interval to 10 seconds**.
+  - **Greystripe custom events now accept parameters configured using app.mopub.com**.
+
+## Version 3.4 (January 30th, 2015)
+
+  - **Certified Facebook SDK Version 3.21.1**.
+  - **Bug fixes**.
+    - Fixed MRAID force orientation command for MRAID interstitials.
+    - Fixed interstitial bug where sound and video would continue to play after dismissal.
+
 ## Version 3.3 (December 8th, 2014)
 
   - **MRAID 2.0 support**. The MoPub SDK is now compliant with the MRAID 2.0 specification to enable rich media ads in banners and interstitial ad units. Learn more about MRAID from the [IAB](http://www.iab.net/MRAID#MRAID). To minimize integration errors, please completely remove the existing MoPub SDK from your project and then integrate the latest version.
