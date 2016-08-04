@@ -8,6 +8,8 @@
 
 #import "MRProperty.h"
 #import <EventKit/EventKit.h>
+#import "MPConstants.h"
+#import "MPCoreInstanceProvider.h"
 
 @implementation MRProperty
 
@@ -17,6 +19,26 @@
 
 - (NSString *)jsonString {
     return @"{}";
+}
+
+@end
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+@implementation MRHostSDKVersionProperty : MRProperty
+
+@synthesize version = _version;
+
++ (instancetype)defaultProperty
+{
+    MRHostSDKVersionProperty *property = [[self alloc] init];
+    property.version = MP_SDK_VERSION;
+    return property;
+}
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"hostSDKVersion: '%@'", self.version];
 }
 
 @end
@@ -108,8 +130,8 @@
 
 + (NSDictionary *)supportedFeatures
 {
-    BOOL supportsSms = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"sms://"]];
-    BOOL supportsTel = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"tel://"]];
+    BOOL supportsSms, supportsTel;
+    supportsSms = supportsTel = [MPCoreInstanceProvider sharedProvider].sharedCarrierInfo[@"carrierName"] != nil;
     BOOL supportsCal = YES;
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000

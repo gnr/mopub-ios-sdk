@@ -153,9 +153,9 @@ static MPCoreInstanceProvider *sharedProvider = nil;
 
 #pragma mark - URL Handling
 
-- (MPURLResolver *)buildMPURLResolver
+- (MPURLResolver *)buildMPURLResolverWithURL:(NSURL *)URL completion:(MPURLResolverCompletionBlock)completion;
 {
-    return [MPURLResolver resolver];
+    return [MPURLResolver resolverWithURL:URL completion:completion];
 }
 
 - (MPAdDestinationDisplayAgent *)buildMPAdDestinationDisplayAgentWithDelegate:(id<MPAdDestinationDisplayAgentDelegate>)delegate
@@ -164,6 +164,11 @@ static MPCoreInstanceProvider *sharedProvider = nil;
 }
 
 #pragma mark - Utilities
+
+- (UIDevice *)sharedCurrentDevice
+{
+    return [UIDevice currentDevice];
+}
 
 - (MPGeolocationProvider *)sharedMPGeolocationProvider
 {

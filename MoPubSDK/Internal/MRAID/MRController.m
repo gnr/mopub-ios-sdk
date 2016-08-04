@@ -23,6 +23,7 @@
 #import "NSURL+MPAdditions.h"
 #import "UIWebView+MPAdditions.h"
 #import "MPForceableOrientationProtocol.h"
+#import "MPAPIEndPoints.h"
 
 static const NSTimeInterval kAdPropertyUpdateTimerInterval = 1.0;
 static const NSTimeInterval kMRAIDResizeAnimationTimeInterval = 0.3;
@@ -32,6 +33,7 @@ static NSString *const kMRAIDCommandResize = @"resize";
 
 @interface MRController () <MRBridgeDelegate, MPClosableViewDelegate, MPAdDestinationDisplayAgentDelegate>
 
+@property (nonatomic) MPAdConfiguration *adConfiguration;
 @property (nonatomic, strong) MRBridge *mraidBridge;
 @property (nonatomic, strong) MRBridge *mraidBridgeTwoPart;
 @property (nonatomic, strong) MPClosableView *mraidAdView;
@@ -133,6 +135,7 @@ static NSString *const kMRAIDCommandResize = @"resize";
 
 - (void)loadAdWithConfiguration:(MPAdConfiguration *)configuration
 {
+    self.adConfiguration = configuration;
     self.isAdLoading = YES;
     self.adRequiresPrecaching = configuration.precacheRequired;
     self.isAdVastVideoPlayer = configuration.isVastVideoPlayer;
@@ -148,7 +151,9 @@ static NSString *const kMRAIDCommandResize = @"resize";
 
     // This load is guaranteed to never be called for a two-part expand so we know we need to load the HTML into the default web view.
     NSString *HTML = [configuration adResponseHTMLString];
-    [self.mraidBridge loadHTMLString:HTML baseURL:nil];
+    [self.mraidBridge loadHTMLString:HTML
+                             baseURL:[NSURL URLWithString:[MPAPIEndpoints baseURL]]
+     ];
 }
 
 - (void)handleMRAIDInterstitialDidPresentWithViewController:(MPMRAIDInterstitialViewController *)viewController
@@ -311,7 +316,8 @@ static NSString *const kMRAIDCommandResize = @"resize";
 {
     // Set up some initial properties so mraid can operate.
     MPLogDebug(@"Injecting initial JavaScript state.");
-    NSArray *startingMraidProperties = @[[MRPlacementTypeProperty propertyWithType:self.placementType],
+    NSArray *startingMraidProperties = @[[MRHostSDKVersionProperty defaultProperty],
+                                         [MRPlacementTypeProperty propertyWithType:self.placementType],
                                          [MRSupportsProperty defaultProperty],
                                          [MRStateProperty propertyWithState:self.currentState]
                                          ];
@@ -660,6 +666,8 @@ static NSString *const kMRAIDCommandResize = @"resize";
         [self adDidLoad];
     } else if (command == MPMoPubHostCommandFailLoad) {
         [self adDidFailToLoad];
+    } else if (command == MPMoPubHostCommandRewardedVideoEnded) {
+        [self.delegate rewardedVideoEnded];
     } else {
         MPLogWarn(@"MRController - unsupported MoPub URL: %@", [url absoluteString]);
     }
@@ -936,6 +944,8 @@ static NSString *const kMRAIDCommandResize = @"resize";
     // Do nothing.
 }
 
+// - (MPAdConfiguration *)adConfiguration delegate method is automatically implemented via the adConfiguration property declaration.
+
 #pragma mark - Property Updating
 
 - (void)updateMRAIDProperties
@@ -998,7 +1008,7 @@ static NSString *const kMRAIDCommandResize = @"resize";
     MRBridge *activeBridge = [self bridgeForActiveAdView];
     [activeBridge fireSetCurrentPositionWithPositionRect:frame];
 
-    MPLogDebug(@"Current Position: %@", NSStringFromCGRect(frame));
+    MPLogTrace(@"Current Position: %@", NSStringFromCGRect(frame));
 }
 
 - (void)updateDefaultPosition
@@ -1009,7 +1019,7 @@ static NSString *const kMRAIDCommandResize = @"resize";
     [self.mraidBridge fireSetDefaultPositionWithPositionRect:defaultFrame];
     [self.mraidBridgeTwoPart fireSetDefaultPositionWithPositionRect:defaultFrame];
 
-    MPLogDebug(@"Default Position: %@", NSStringFromCGRect(defaultFrame));
+    MPLogTrace(@"Default Position: %@", NSStringFromCGRect(defaultFrame));
 }
 
 - (void)updateScreenSize
@@ -1021,7 +1031,7 @@ static NSString *const kMRAIDCommandResize = @"resize";
     [self.mraidBridge fireSetScreenSize:screenSize];
     [self.mraidBridgeTwoPart fireSetScreenSize:screenSize];
 
-    MPLogDebug(@"Screen Size: %@", NSStringFromCGSize(screenSize));
+    MPLogTrace(@"Screen Size: %@", NSStringFromCGSize(screenSize));
 }
 
 - (void)updateMaxSize
@@ -1033,7 +1043,7 @@ static NSString *const kMRAIDCommandResize = @"resize";
     [self.mraidBridge fireSetMaxSize:maxSize];
     [self.mraidBridgeTwoPart fireSetMaxSize:maxSize];
 
-    MPLogDebug(@"Max Size: %@", NSStringFromCGSize(maxSize));
+    MPLogTrace(@"Max Size: %@", NSStringFromCGSize(maxSize));
 }
 
 #pragma mark - MRAID events
@@ -1070,7 +1080,8 @@ static NSString *const kMRAIDCommandResize = @"resize";
 
 - (void)checkViewability
 {
-    BOOL viewable = MPViewIsVisible([self activeView]);
+    BOOL viewable = MPViewIsVisible([self activeView]) &&
+        ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive);
     [self updateViewabilityWithBool:viewable];
 }
 

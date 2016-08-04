@@ -13,9 +13,13 @@
 #import "MRNativeCommandHandler.h"
 #import "MRExpandModalViewController.h"
 #import "MPClosableView+MPSpecs.h"
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
 
 @interface MRNativeCommandHandler () <MRCalendarManagerDelegate, MRPictureManagerDelegate, MRVideoPlayerManagerDelegate, MRCommandDelegate>
 
@@ -89,8 +93,16 @@ describe(@"MRController", ^{
     });
 
     describe(@"updateMRAIDProperties", ^{
-        beforeEach(^{
-            spy_on(controller);
+        subjectAction(^{
+            // XXX: We need to add the ad view to the view hierarchy; otherwise, any code that
+            // performs visibility checks will think that the ad is not visible.
+            [window addSubview:controller.mraidAdView];
+
+            // XXX: The act of placing the ad in a view hierarchy generates a lot of messages.
+            // To keep the tests clean, we'll ignore messages before the next updateMRAIDProperties.
+            [(id<CedarDouble>)controller reset_sent_messages];
+
+            [controller updateMRAIDProperties];
         });
 
         // Test that updateMRAIDProperties is called eventually.
@@ -101,38 +113,74 @@ describe(@"MRController", ^{
         context(@"when not animating the ad size", ^{
             beforeEach(^{
                 controller.isAnimatingAdSize = NO;
-                [controller updateMRAIDProperties];
             });
 
-            it(@"should attempt to update the visibility of the view", ^{
-                controller should have_received(@selector(checkViewability));
+            context(@"if the application is in the active state", ^{
+                beforeEach(^{
+                    controller.isViewable = NO;
+                    spy_on([UIApplication sharedApplication]);
+                    [UIApplication sharedApplication] stub_method("applicationState").and_return(UIApplicationStateActive);
+                });
+
+                it(@"should report that the ad is viewable", ^{
+                    controller.isViewable should equal(YES);
+                    [fakeMRBridge containsProperty:[MRViewableProperty propertyWithViewable:YES]] should equal(YES);
+                    [fakeMRBridge containsProperty:[MRViewableProperty propertyWithViewable:NO]] should equal(NO);
+                });
+
+                it(@"should call updateCurrentPosition", ^{
+                    controller should have_received(@selector(updateCurrentPosition));
+                });
+
+                it(@"should call updateDefaultPosition", ^{
+                    controller should have_received(@selector(updateDefaultPosition));
+                });
+
+                it(@"should call updateScreenSize", ^{
+                    controller should have_received(@selector(updateScreenSize));
+                });
+
+                it(@"should call updateMaxSize", ^{
+                    controller should have_received(@selector(updateMaxSize));
+                });
+
+                it(@"should call updateEventSizeChange", ^{
+                    controller should have_received(@selector(updateEventSizeChange));
+                });
             });
 
-            it(@"should call updateCurrentPosition", ^{
-                controller should have_received(@selector(updateCurrentPosition));
+            context(@"if the application is in the inactive state", ^{
+                beforeEach(^{
+                    controller.isViewable = YES;
+                    spy_on([UIApplication sharedApplication]);
+                    [UIApplication sharedApplication] stub_method("applicationState").and_return(UIApplicationStateInactive);
+                });
+
+                it(@"should report that the ad is not viewable", ^{
+                    controller.isViewable should equal(NO);
+                    [fakeMRBridge containsProperty:[MRViewableProperty propertyWithViewable:NO]] should equal(YES);
+                    [fakeMRBridge containsProperty:[MRViewableProperty propertyWithViewable:YES]] should equal(NO);
+                });
             });
 
-            it(@"should call updateDefaultPosition", ^{
-                controller should have_received(@selector(updateDefaultPosition));
-            });
+            context(@"if the application is in the background state", ^{
+                beforeEach(^{
+                    controller.isViewable = YES;
+                    spy_on([UIApplication sharedApplication]);
+                    [UIApplication sharedApplication] stub_method("applicationState").and_return(UIApplicationStateBackground);
+                });
 
-            it(@"should call updateScreenSize", ^{
-                controller should have_received(@selector(updateScreenSize));
-            });
-
-            it(@"should call updateMaxSize", ^{
-                controller should have_received(@selector(updateMaxSize));
-            });
-
-            it(@"should call updateEventSizeChange", ^{
-                controller should have_received(@selector(updateEventSizeChange));
+                it(@"should report that the ad is not viewable", ^{
+                    controller.isViewable should equal(NO);
+                    [fakeMRBridge containsProperty:[MRViewableProperty propertyWithViewable:NO]] should equal(YES);
+                    [fakeMRBridge containsProperty:[MRViewableProperty propertyWithViewable:YES]] should equal(NO);
+                });
             });
         });
 
         context(@"when animating the ad size", ^{
             beforeEach(^{
                 controller.isAnimatingAdSize = YES;
-                [controller updateMRAIDProperties];
             });
 
             it(@"should not attempt to update the visibility of the view", ^{
@@ -681,13 +729,15 @@ describe(@"MRController", ^{
     describe(@"loading an ad configuration", ^{
         context(@"when the MRAID bundle is not available", ^{
             __block MRBundleManager<CedarDouble> *fakeBundleManager;
+            __block NSString *HTMLString;
 
             beforeEach(^{
+                spy_on(fakeMRBridge);
                 fakeBundleManager = nice_fake_for([MRBundleManager class]);
                 fakeBundleManager stub_method("mraidPath").and_return((NSString *)nil);
                 fakeProvider.fakeMRBundleManager = fakeBundleManager;
 
-                NSString *HTMLString = @"<h1>Hi, dudes!</h1>";
+                HTMLString = @"<h1>Hi, dudes!</h1>";
                 configuration = [MPAdConfigurationFactory defaultInterstitialConfigurationWithHeaders:nil HTMLString:HTMLString];
                 [controller loadAdWithConfiguration:configuration];
             });
@@ -696,9 +746,29 @@ describe(@"MRController", ^{
                 [webView loadedHTMLString] should be_nil;
             });
 
+            it(@"should use http://ads.mopub.com for the baseURL", ^{
+                fakeMRBridge should have_received(@selector(loadHTMLString:baseURL:)).with(HTMLString).and_with([NSURL URLWithString:@"http://ads.mopub.com"]);
+            });
+
             it(@"should tell its delegate that the ad failed to load", ^{
                 controllerDelegate should have_received(@selector(adDidFailToLoad:));
             });
+        });
+    });
+
+    context(@"when an ad finishes loading and appears on the screen", ^{
+        beforeEach(^{
+            NSString *HTMLString = @"Hello, world!";
+            configuration = [MPAdConfigurationFactory defaultBannerConfigurationWithHeaders:nil
+                                                                                 HTMLString:HTMLString];
+            [controller loadAdWithConfiguration:configuration];
+            [controller bridge:fakeMRBridge didFinishLoadingWebView:webView];
+            [window addSubview:controller.mraidAdView];
+        });
+
+        it(@"should configure the MRAID JS with the version of the SDK that is being used", ^{
+            NSString *expected = [NSString stringWithFormat:@"hostSDKVersion: '%@'", MP_SDK_VERSION];
+            fakeMRBridge.changedProperties should contain(expected);
         });
     });
 
@@ -730,6 +800,13 @@ describe(@"MRController", ^{
                 [fakeMRBridge webView:webView shouldStartLoadWithRequest:request navigationType:UIWebViewNavigationTypeOther];
 
                 controllerDelegate should have_received(@selector(adDidLoad:));
+            });
+
+            it(@"should notify the delegate when the rewarded video finished playing", ^{
+                NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"mopub://rewardedVideoEnded"]];
+                [fakeMRBridge webView:webView shouldStartLoadWithRequest:request navigationType:UIWebViewNavigationTypeOther];
+
+                controllerDelegate should have_received(@selector(rewardedVideoEnded));
             });
         });
     });
@@ -1502,3 +1579,5 @@ describe(@"MRController", ^{
 });
 
 SPEC_END
+
+#pragma clang diagnostic pop

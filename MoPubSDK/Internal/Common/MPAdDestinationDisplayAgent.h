@@ -6,6 +6,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "MPActivityViewControllerHelper+TweetShare.h"
 #import "MPURLResolver.h"
 #import "MPProgressOverlayView.h"
 #import "MPAdBrowserController.h"
@@ -13,7 +14,10 @@
 
 @protocol MPAdDestinationDisplayAgentDelegate;
 
-@interface MPAdDestinationDisplayAgent : NSObject <MPURLResolverDelegate, MPProgressOverlayViewDelegate, MPAdBrowserControllerDelegate, MPSKStoreProductViewControllerDelegate>
+@interface MPAdDestinationDisplayAgent : NSObject <MPProgressOverlayViewDelegate,
+                                                   MPAdBrowserControllerDelegate,
+                                                   MPSKStoreProductViewControllerDelegate,
+                                                   MPActivityViewControllerHelperDelegate>
 
 @property (nonatomic, weak) id<MPAdDestinationDisplayAgentDelegate> delegate;
 
@@ -29,5 +33,9 @@
 - (void)displayAgentWillPresentModal;
 - (void)displayAgentWillLeaveApplication;
 - (void)displayAgentDidDismissModal;
+
+@optional
+
+- (MPAdConfiguration *)adConfiguration;
 
 @end

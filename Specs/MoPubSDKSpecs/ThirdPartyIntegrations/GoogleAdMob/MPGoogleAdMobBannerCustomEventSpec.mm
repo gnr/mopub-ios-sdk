@@ -1,5 +1,6 @@
 #import "MPGoogleAdMobBannerCustomEvent.h"
 #import "FakeGADBannerView.h"
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
@@ -54,7 +55,7 @@ describe(@"MPGoogleAdMobBannerCustomEvent", ^{
             banner.loadedRequest should equal(request);
 
             request should have_received(@selector(setLocationWithLatitude:longitude:accuracy:)).with((CGFloat)37.1).and_with((CGFloat)21.2).and_with((CGFloat)12.3);
-            request should have_received(@selector(setTestDevices:)).with(@[GAD_SIMULATOR_ID]);
+            request should have_received(@selector(setTestDevices:));
         });
 
         it(@"should fetch a banner of the right size", ^{

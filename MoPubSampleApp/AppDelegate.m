@@ -13,10 +13,7 @@
 #import "MPLogEvent.h"
 #import "MPLogEventRecorder.h"
 #import "MPLogging.h"
-
-#if RUN_KIF_TESTS
-#import "MPKIFTestController.h"
-#endif
+#import <UIKit/UIKit.h>
 
 @implementation AppDelegate
 
@@ -35,13 +32,6 @@
     [[UITableViewHeaderFooterView appearance] setTintColor:[UIColor colorWithRed:0.4 green:0.4 blue:0.4 alpha:1]];
     navController.navigationBar.barStyle = UIBarStyleBlackOpaque;
     navController.navigationBar.titleTextAttributes = @{UITextAttributeTextColor: [UIColor colorWithRed:0.86 green:0.86 blue:0.86 alpha:1]};
-
-#if RUN_KIF_TESTS
-    [[MPKIFTestController sharedInstance] startTestingWithCompletionBlock:^{
-        // Exit after the tests complete so that CI knows we're done
-        exit([[MPKIFTestController sharedInstance] failureCount]);
-    }];
-#endif
 
     return YES;
 }

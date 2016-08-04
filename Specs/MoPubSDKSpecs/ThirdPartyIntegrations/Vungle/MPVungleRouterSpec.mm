@@ -2,6 +2,7 @@
 #import "VungleInterstitialCustomEvent.h"
 #import "VungleRewardedVideoCustomEvent.h"
 #import "VungleSDK+Specs.h"
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
@@ -34,23 +35,51 @@ describe(@"MPVungleRouter", ^{
 
     context(@"when an ad is not already playing", ^{
         beforeEach(^{
-            SDK stub_method(@selector(isCachedAdAvailable)).and_return(YES);
+            SDK stub_method(@selector(isAdPlayable)).and_return(YES);
         });
 
-        it(@"should play an interstitial ad without error", ^{
+        it(@"should attempt to play an interstitial ad", ^{
             [router presentInterstitialAdFromViewController:controller withDelegate:delegate];
-            SDK should have_received(@selector(playAd:));
+            SDK should have_received(@selector(playAd:error:));
         });
 
-        it(@"should play a rewarded ad without error", ^{
-            [router presentRewardedVideoAdFromViewController:controller settings:nil delegate:delegate];
-            SDK should have_received(@selector(playAd:withOptions:));
+        it(@"should attempt to play a rewarded video ad", ^{
+            [router presentRewardedVideoAdFromViewController:controller customerId:@"customerId" settings:nil delegate:delegate];
+            SDK should have_received(@selector(playAd:withOptions:error:));
+        });
+
+        context(@"when the SDK fails to play the ad", ^{
+            beforeEach(^{
+                SDK stub_method(@selector(playAd:error:)).and_do_block(^BOOL(UIViewController *controller, NSError **error){
+                    if (error) {
+                        *error = [NSError errorWithDomain:@"domain" code:1 userInfo:@{}];
+                    }
+                    return NO;
+                });
+
+                SDK stub_method(@selector(playAd:withOptions:error:)).and_do_block(^BOOL(UIViewController *controller, id options, NSError **error){
+                    if (error) {
+                        *error = [NSError errorWithDomain:@"domain" code:1 userInfo:@{}];
+                    }
+                    return NO;
+                });
+            });
+
+            it(@"should notify its delegate that it couldn't play the interstitial ad", ^{
+                [router presentInterstitialAdFromViewController:controller withDelegate:delegate];
+                delegate should have_received(@selector(vungleAdDidFailToPlay:));
+            });
+
+            it(@"should notify its delegate that it couldn't play the rewarded video ad", ^{
+                [router presentRewardedVideoAdFromViewController:controller customerId:@"customerId"  settings:nil delegate:delegate];
+                delegate should have_received(@selector(vungleAdDidFailToPlay:));
+            });
         });
     });
 
     context(@"when an interstitial ad is already playing", ^{
         beforeEach(^{
-            SDK stub_method(@selector(isCachedAdAvailable)).and_return(YES);
+            SDK stub_method(@selector(isAdPlayable)).and_return(YES);
             [router presentInterstitialAdFromViewController:controller withDelegate:delegate];
         });
 
@@ -60,15 +89,15 @@ describe(@"MPVungleRouter", ^{
         });
 
         it(@"should fail to play a rewarded video", ^{
-            [router presentRewardedVideoAdFromViewController:controller settings:nil delegate:delegate];
+            [router presentRewardedVideoAdFromViewController:controller customerId:@"customerId"  settings:nil delegate:delegate];
             delegate should have_received(@selector(vungleAdDidFailToPlay:));
         });
     });
 
     context(@"when a rewarded video ad is already playing", ^{
         beforeEach(^{
-            SDK stub_method(@selector(isCachedAdAvailable)).and_return(YES);
-            [router presentRewardedVideoAdFromViewController:controller settings:nil delegate:delegate];
+            SDK stub_method(@selector(isAdPlayable)).and_return(YES);
+            [router presentRewardedVideoAdFromViewController:controller customerId:@"customerId"  settings:nil delegate:delegate];
         });
 
         it(@"should fail to play an interstitial", ^{
@@ -77,14 +106,14 @@ describe(@"MPVungleRouter", ^{
         });
 
         it(@"should fail to play a rewarded video", ^{
-            [router presentRewardedVideoAdFromViewController:controller settings:nil delegate:delegate];
+            [router presentRewardedVideoAdFromViewController:controller customerId:@"customerId" settings:nil delegate:delegate];
             delegate should have_received(@selector(vungleAdDidFailToPlay:));
         });
     });
 
     context(@"when an interstitial ad closes", ^{
         beforeEach(^{
-            SDK stub_method(@selector(isCachedAdAvailable)).and_return(YES);
+            SDK stub_method(@selector(isAdPlayable)).and_return(YES);
             [router presentInterstitialAdFromViewController:controller withDelegate:delegate];
             router.isAdPlaying should be_truthy;
         });
@@ -106,8 +135,8 @@ describe(@"MPVungleRouter", ^{
 
     context(@"when a rewarded video ad ad closes", ^{
         beforeEach(^{
-            SDK stub_method(@selector(isCachedAdAvailable)).and_return(YES);
-            [router presentRewardedVideoAdFromViewController:controller settings:nil delegate:delegate];
+            SDK stub_method(@selector(isAdPlayable)).and_return(YES);
+            [router presentRewardedVideoAdFromViewController:controller customerId:@"customerId" settings:nil delegate:delegate];
             router.isAdPlaying should be_truthy;
         });
 
@@ -128,7 +157,7 @@ describe(@"MPVungleRouter", ^{
 
     context(@"when an ad is not available", ^{
         beforeEach(^{
-            SDK stub_method(@selector(isCachedAdAvailable)).and_return(NO);
+            SDK stub_method(@selector(isAdPlayable)).and_return(NO);
             router.isAdPlaying = NO;
         });
 
@@ -138,7 +167,7 @@ describe(@"MPVungleRouter", ^{
         });
 
         it(@"should not play a rewarded video ad", ^{
-            [router presentRewardedVideoAdFromViewController:controller settings:nil delegate:delegate];
+            [router presentRewardedVideoAdFromViewController:controller customerId:@"customerId" settings:nil delegate:delegate];
             delegate should have_received(@selector(vungleAdDidFailToPlay:));
         });
     });

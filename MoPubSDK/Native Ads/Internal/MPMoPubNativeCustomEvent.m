@@ -20,14 +20,15 @@
 
     if (adAdapter.properties) {
         MPNativeAd *interfaceAd = [[MPNativeAd alloc] initWithAdAdapter:adAdapter];
-        [interfaceAd.impressionTrackers addObjectsFromArray:adAdapter.impressionTrackers];
+        [interfaceAd.impressionTrackerURLs addObjectsFromArray:adAdapter.impressionTrackerURLs];
+        [interfaceAd.clickTrackerURLs addObjectsFromArray:adAdapter.clickTrackerURLs];
 
         // Get the image urls so we can download them prior to returning the ad.
         NSMutableArray *imageURLs = [NSMutableArray array];
         for (NSString *key in [info allKeys]) {
             if ([[key lowercaseString] hasSuffix:@"image"] && [[info objectForKey:key] isKindOfClass:[NSString class]]) {
                 if (![MPNativeAdUtils addURLString:[info objectForKey:key] toURLArray:imageURLs]) {
-                    [self.delegate nativeCustomEvent:self didFailToLoadAdWithError:[NSError errorWithDomain:MoPubNativeAdsSDKDomain code:MPNativeAdErrorInvalidServerResponse userInfo:nil]];
+                    [self.delegate nativeCustomEvent:self didFailToLoadAdWithError:MPNativeAdNSErrorForInvalidImageURL()];
                 }
             }
         }
@@ -35,14 +36,13 @@
         [super precacheImagesWithURLs:imageURLs completionBlock:^(NSArray *errors) {
             if (errors) {
                 MPLogDebug(@"%@", errors);
-                MPLogInfo(@"Error: data received was invalid.");
-                [self.delegate nativeCustomEvent:self didFailToLoadAdWithError:[NSError errorWithDomain:MoPubNativeAdsSDKDomain code:MPNativeAdErrorInvalidServerResponse userInfo:nil]];
+                [self.delegate nativeCustomEvent:self didFailToLoadAdWithError:MPNativeAdNSErrorForImageDownloadFailure()];
             } else {
                 [self.delegate nativeCustomEvent:self didLoadAd:interfaceAd];
             }
         }];
     } else {
-        [self.delegate nativeCustomEvent:self didFailToLoadAdWithError:[NSError errorWithDomain:MoPubNativeAdsSDKDomain code:MPNativeAdErrorInvalidServerResponse userInfo:nil]];
+        [self.delegate nativeCustomEvent:self didFailToLoadAdWithError:MPNativeAdNSErrorForInvalidAdServerResponse(nil)];
     }
 
 }

@@ -8,10 +8,11 @@
 #import "MPSpecHelper.h"
 #import "MPInterstitialAdController.h"
 #import "GSSDKInfo.h"
-#import <MillennialMedia/MMSDK.h>
+#import <MMAdSDK/MMSDK.h>
 #import "CedarAsync.h"
 #import "FakeMPInstanceProvider.h"
 #import "FakeMPCoreInstanceProvider.h"
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
@@ -51,6 +52,11 @@ void log_sent_messages(id<CedarDouble> fake)
     }
 }
 
+NSData *dataFromXMLFileNamed(NSString *name) {
+    NSString *file = [[NSBundle mainBundle] pathForResource:name ofType:@"xml"];
+    return [NSData dataWithContentsOfFile:file];
+}
+
 @implementation MPSpecHelper
 
 + (void)beforeEach
@@ -58,7 +64,7 @@ void log_sent_messages(id<CedarDouble> fake)
     if (!beforeAllDidRun) {
         usleep(200000);
         beforeAllDidRun = YES;
-        [MMSDK setLogLevel:MMLOG_LEVEL_OFF];
+        [MMSDK setLogLevel:MMLogLevelError];
         [GSSDKInfo setGUID:@"GreystripeGUID"]; //silences greystripe complaints further down the line
     }
 

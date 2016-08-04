@@ -12,6 +12,9 @@
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
+
 @interface MPTimer (Specs)
 
 @property (nonatomic, assign) BOOL isPaused;
@@ -27,6 +30,12 @@ describe(@"MPBannerAdManager", ^{
     __block FakeMPLogEventRecorder *eventRecorder;
 
     beforeEach(^{
+        // XXX: The geolocation provider can cause these tests to be flaky, since it can potentially
+        // override the `location` property of MPAdView. For this reason, we substitute a fake
+        // geolocation provider that never establishes a known location.
+        FakeMPGeolocationProvider *fakeGeolocationProvider = [[FakeMPGeolocationProvider alloc] init];
+        fakeCoreProvider.fakeGeolocationProvider = fakeGeolocationProvider;
+
         eventRecorder = [[FakeMPLogEventRecorder alloc] init];
         spy_on(eventRecorder);
         fakeCoreProvider.fakeLogEventRecorder = eventRecorder;
@@ -48,7 +57,7 @@ describe(@"MPBannerAdManager", ^{
             URL should contain(@"id=panther");
             URL should contain(@"q=liono");
             URL should contain(@"ll=30,20");
-            URL should contain(@"http://testing.ads.mopub.com");
+            URL should contain(@"https://testing.ads.mopub.com");
         });
     });
 
@@ -324,3 +333,5 @@ describe(@"MPBannerAdManager", ^{
 });
 
 SPEC_END
+
+#pragma clang diagnostic pop

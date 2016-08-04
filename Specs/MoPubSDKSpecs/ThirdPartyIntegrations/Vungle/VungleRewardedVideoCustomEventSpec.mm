@@ -3,6 +3,7 @@
 #import "VungleSDK+Specs.h"
 #import "MPVungleRouter.h"
 #import "VungleInstanceMediationSettings.h"
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
@@ -37,14 +38,25 @@ describe(@"VungleRewardedVideoCustomEvent", ^{
             [VungleSDK mp_getAppId] should equal(@"CUSTOM_APP_ID");
         });
 
-        context(@"when Vungle sends us vungleSDKhasCachedAdAvailable", ^{
+        context(@"when Vungle sends us vungleSDKAdPlayableChanged with an ad being playable", ^{
             beforeEach(^{
                 [delegate reset_sent_messages];
-                [router vungleSDKhasCachedAdAvailable];
+                [router vungleSDKAdPlayableChanged:YES];
             });
 
             it(@"should notify the delegate ad did load", ^{
                 delegate should have_received(@selector(rewardedVideoDidLoadAdForCustomEvent:));
+            });
+        });
+
+        context(@"when Vungle sends us isAdPlayable with an ad not being playable", ^{
+            beforeEach(^{
+                [delegate reset_sent_messages];
+                [router vungleSDKAdPlayableChanged:NO];
+            });
+
+            it(@"should not tell the delegate an ad loaded", ^{
+                delegate should_not have_received(@selector(rewardedVideoDidLoadAdForCustomEvent:));
             });
         });
 
@@ -54,18 +66,64 @@ describe(@"VungleRewardedVideoCustomEvent", ^{
             });
 
             describe(@"with presenting a product sheet", ^{
-                it(@"should not send disappear messages to the delegate", ^{
+                beforeEach(^{
                     [router vungleSDKwillCloseAdWithViewInfo:nil willPresentProductSheet:YES];
+                });
+
+                it(@"should not send disappear messages to the delegate", ^{
                     delegate should_not have_received(@selector(rewardedVideoWillAppearForCustomEvent:));
                     delegate should_not have_received(@selector(rewardedVideoDidAppearForCustomEvent:));
+                });
+
+                it(@"should not trigger a click event", ^{
+                    delegate should_not have_received(@selector(rewardedVideoDidReceiveTapEventForCustomEvent:));
                 });
             });
 
             describe(@"with not presenting a product sheet", ^{
-                it(@"should send disappear messages to the delegate", ^{
+                beforeEach(^{
                     [router vungleSDKwillCloseAdWithViewInfo:nil willPresentProductSheet:NO];
+                });
+
+                it(@"should send disappear messages to the delegate", ^{
                     delegate should have_received(@selector(rewardedVideoWillDisappearForCustomEvent:));
                     delegate should have_received(@selector(rewardedVideoDidDisappearForCustomEvent:));
+                });
+
+                it(@"should not trigger a click event", ^{
+                    delegate should_not have_received(@selector(rewardedVideoDidReceiveTapEventForCustomEvent:));
+                });
+            });
+
+            describe(@"signifying that the user did click to download app", ^{
+                beforeEach(^{
+                    NSDictionary *info = @{@"didDownload" : @(YES)};
+                    [router vungleSDKwillCloseAdWithViewInfo:info willPresentProductSheet:NO];
+                });
+
+                it(@"should not send disappear messages to the delegate", ^{
+                    delegate should_not have_received(@selector(rewardedVideoWillAppearForCustomEvent:));
+                    delegate should_not have_received(@selector(rewardedVideoDidAppearForCustomEvent:));
+                });
+
+                it(@"should trigger a click event", ^{
+                    delegate should have_received(@selector(rewardedVideoDidReceiveTapEventForCustomEvent:));
+                });
+            });
+
+            describe(@"signifying that the user did not click to download app", ^{
+                beforeEach(^{
+                    NSDictionary *info = @{@"didDownload" : @(NO)};
+                    [router vungleSDKwillCloseAdWithViewInfo:info willPresentProductSheet:NO];
+                });
+
+                it(@"should not send disappear messages to the delegate", ^{
+                    delegate should_not have_received(@selector(rewardedVideoWillAppearForCustomEvent:));
+                    delegate should_not have_received(@selector(rewardedVideoDidAppearForCustomEvent:));
+                });
+
+                it(@"should not trigger a click event", ^{
+                    delegate should_not have_received(@selector(rewardedVideoDidReceiveTapEventForCustomEvent:));
                 });
             });
         });
@@ -152,7 +210,7 @@ describe(@"VungleRewardedVideoCustomEvent", ^{
         it(@"secondModel should be the Vungle router's delegate", ^{
             [router delegate] should equal(secondModel);
 
-            [router vungleSDKhasCachedAdAvailable];
+            [router vungleSDKAdPlayableChanged:YES];
             secondDelegate should have_received(@selector(rewardedVideoDidLoadAdForCustomEvent:));
             delegate should_not have_received(@selector(rewardedVideoDidLoadAdForCustomEvent:));
         });
@@ -177,7 +235,6 @@ describe(@"VungleRewardedVideoCustomEvent", ^{
             });
         });
     });
-
 });
 
 SPEC_END

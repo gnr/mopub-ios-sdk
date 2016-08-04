@@ -3,6 +3,7 @@
 #import <CoreLocation/CoreLocation.h>
 #import "CLLocationManager+MPSpecs.h"
 #import "FakeCLLocationManager.h"
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
@@ -11,6 +12,9 @@ extern NSTimeInterval kMPLocationUpdateDuration;
 extern NSTimeInterval kMPLocationUpdateInterval;
 
 static const NSTimeInterval kLeewayInterval = 1.0;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,10 +29,12 @@ static const NSTimeInterval kLeewayInterval = 1.0;
 SPEC_BEGIN(MPGeolocationProviderSpec)
 
 describe(@"MPGeolocationProvider", ^{
+    __block CLLocation *validLocation;
     __block FakeCLLocationManager *fakeLocationManager;
     __block MPGeolocationProvider *provider;
 
     beforeEach(^{
+        validLocation = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37, -122) altitude:0 horizontalAccuracy:30 verticalAccuracy:30 timestamp:[NSDate date]];
         fakeLocationManager = [[FakeCLLocationManager alloc] init];
         fakeCoreProvider.fakeLocationManager = fakeLocationManager;
     });
@@ -38,10 +44,7 @@ describe(@"MPGeolocationProvider", ^{
 
         context(@"when the location manager has an existing location at launch time", ^{
             context(@"if the location is valid", ^{
-                __block CLLocation *validLocation;
-
                 beforeEach(^{
-                    validLocation = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(37, -122) altitude:0 horizontalAccuracy:30 verticalAccuracy:30 timestamp:[NSDate date]];
                     [fakeLocationManager setLocation:validLocation];
                 });
 
@@ -175,6 +178,15 @@ describe(@"MPGeolocationProvider", ^{
             });
 
             it(@"should nil out the last known location", ^{
+                provider.lastKnownLocation should be_nil;
+            });
+
+            it(@"should always return nil for -lastKnownLocation even if a location update comes in", ^{
+                // It seems that there can be a race condition in which
+                // -locationManager:didUpdateLocations: is still called after the location manager
+                // is told to stop updating its location. In this case, we don't want the location
+                // to be accessible, so -lastKnownLocation should return nil.
+                [provider locationManager:fakeLocationManager didUpdateLocations:@[validLocation]];
                 provider.lastKnownLocation should be_nil;
             });
         });
@@ -420,3 +432,5 @@ describe(@"MPGeolocationProvider", ^{
 });
 
 SPEC_END
+
+#pragma clang diagnostic pop

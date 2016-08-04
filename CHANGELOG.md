@@ -1,3 +1,106 @@
+## Version 4.8.0 (August 1st, 2016)
+- **renamed MPError enums to avoid possible naming conflict with MediaPlayer framework errors**.
+
+## Version 4.7.0 (June 2nd, 2016)
+- **Rewarded video server-side currency rewarding (Beta)**.
+	
+## Version 4.6.0 (April 21th, 2016)
+- **Certified Chartboost version 6.4.0**
+- **Certified Tapjoy version 11.5.1**
+- **Bug fixes**
+	- Fixed resource loading issues when using cocoapods and frameworks
+
+## Version 4.5.1 (April 4th, 2016)
+
+- **bitcode support for MoPub Fabric Kit**
+	
+## Version 4.5 (March 24th, 2016)
+
+- **Rewarded video support from the MoPub Marketplace (Beta)**
+- **Bug fixes**
+	- The SDK now correctly sends matched modal presented/dismissed callbacks on clickthrough
+
+## Version 4.4 (February 17th, 2016)
+
+- **Enabled SSL ad requests by default**
+- **Bug fixes**
+	- Fixed native video impression tracking
+	- Made closeable hot spot consistent across all full-screen creative types
+
+
+## Version 4.3 (December 15th, 2015)
+
+- **Minor SDK improvements**.
+	
+## Version 4.2 (November 30th, 2015)
+
+- **Upgraded Facebook SDK support to 4.8.0**.
+	- Facebook Audience Network custom events for native and native video automatically display Facebook's AdChoices icon.
+- **Added mediation support for Facebook video**.
+- **Bug fixes**
+    - Added mp prefix to common constants.
+    - Fixed minor issue with video resuming during background to foreground transitions.
+    - Fixed minor issue generating the 'mute' video status event.
+
+## Version 4.1 (November 12th, 2015)
+
+- **Added MoPub prefixes to constants and category methods**.
+- **Certified Tapjoy 11.2.2**.
+- **Certified Vungle 3.2.0**.
+
+## Version 4.0 (October 6th, 2015)
+
+- **Minimum supported iOS version is now 6.0**.
+- **Updated native ad integration APIs**.
+- **Improved native ad placer caching and request logic**.
+- **Clicks are now automatically tracked for native ads that use the manual integration**.
+- **Removed deprecated classes**.
+  - Removed legacy custom event classes deprecated in 1.10.
+  - Removed MPTableViewAdManager class deprecated in 3.0.
+
+## Version 3.13 (September 17th, 2015)
+
+- **Added iOS 9 support**.
+
+## Version 3.12 (August 31st, 2015)
+
+- **Added Privacy Information icon support for MoPub native ads**.
+- **GA of rewarded video ad mediation**.
+	- Added mediation support for AdColony, Chartboost, Vungle, and Unity rewarded video ads.
+
+## Version 3.11 (August 20th, 2015)
+
+- **Updated Millennial Media custom events (Millennial Media SDK 6.0+ only)**.
+
+## Version 3.10 (August 3rd, 2015)
+
+- **Minor improvements**.
+- **Bug fixes**.
+	- didDismissInterstitial is now called when the dismiss animation has completed.
+	
+## Version 3.9 (July 1st, 2015)
+
+- **Added VAST 3.0 standard support for video ads**.
+- **Improved video player UX**.
+- **Improved error messages**.
+- **Improved deep link handling**.
+- **Bug fixes**.
+	- Fixed clickthrough behavior for MRAID ads that use iframes.
+
+## Version 3.8 (June 1st, 2015)
+
+- **Minor improvements**.
+
+## Version 3.7 (April 30th, 2015)
+
+- **Added iAd medium rectangle ad support**.
+- **Certified Google AdMob SDK version 7.1.0**.
+- **Certified Greystripe SDK version 4.4.0**.
+- **Certified Vungle SDK version 3.0.13**.
+	- Added click callback support.
+- **Bug fixes**.
+	- Addressed a race condition when receiving location updates after calling -`[MPGeolocationProvider disableLocationUpdates:]`.
+    
 ## Version 3.6 (April 3rd, 2015)
 
   - **Bug fixes**.

@@ -1,8 +1,15 @@
 #import "MPAdView.h"
 #import "MPClosableView.h"
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
+
+@interface MPAdView (Specs)
+
+- (void)setAdContentView:(UIView *)view;
+
+@end
 
 SPEC_BEGIN(MPAdViewSpec)
 
@@ -10,6 +17,12 @@ describe(@"MPAdView", ^{
     __block MPAdView *adView;
 
     beforeEach(^{
+        // XXX: The geolocation provider can cause these tests to be flaky, since it can potentially
+        // override the `location` property of MPAdView. For this reason, we substitute a fake
+        // geolocation provider that never establishes a known location.
+        FakeMPGeolocationProvider *fakeGeolocationProvider = [[FakeMPGeolocationProvider alloc] init];
+        fakeCoreProvider.fakeGeolocationProvider = fakeGeolocationProvider;
+
         adView = [[MPAdView alloc] initWithAdUnitId:@"foo" size:MOPUB_BANNER_SIZE];
     });
 
@@ -29,7 +42,7 @@ describe(@"MPAdView", ^{
             requestedPath should contain(@"&q=hi=4");
             requestedPath should contain(@"&ll=20,20");
             requestedPath should contain(@"&lla=100");
-            requestedPath should contain(@"http://testing.ads.mopub.com");
+            requestedPath should contain(@"https://testing.ads.mopub.com");
         });
     });
 

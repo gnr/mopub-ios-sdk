@@ -2,6 +2,7 @@
 #import "MPAdConfigurationFactory.h"
 #import "FakeMPLogEventRecorder.h"
 #import "MPLogEvent.h"
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;
@@ -93,11 +94,13 @@ describe(@"MPAdServerCommunicator", ^{
                 eventRecorder should have_received(@selector(addEvent:));
 
                 MPLogEvent *event = eventRecorder.events[0];
-                event.performanceDurationMs should_not equal(0);
                 event.requestStatusCode should equal(200);
                 event.requestURI should equal(URL.absoluteString);
                 event.adType should equal(@"html");
+                event.eventCategory should equal(@"requests");
             });
+
+            it(@"should log an event that records the correct performanceDurationMs", PENDING);
         });
 
         context(@"when the request fails", ^{

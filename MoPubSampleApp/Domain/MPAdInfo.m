@@ -28,7 +28,7 @@
     NSMutableArray *ads = [NSMutableArray array];
 
     [ads addObjectsFromArray:@[
-                               [MPAdInfo infoWithTitle:@"HTML Banner Ad" ID:@"c92be421345c4eab964645f6a1818284" type:MPAdInfoBanner],
+                               [MPAdInfo infoWithTitle:@"HTML Banner Ad" ID:@"0ac59b0996d947309c33f59d6676399f" type:MPAdInfoBanner],
                                [MPAdInfo infoWithTitle:@"MRAID Banner Ad" ID:@"23b49916add211e281c11231392559e4" type:MPAdInfoBanner],
                                [MPAdInfo infoWithTitle:@"HTML MRECT Banner Ad" ID:@"2aae44d2ab91424d9850870af33e5af7" type:MPAdInfoMRectBanner],
                                ]];
@@ -49,13 +49,21 @@
              ];
 }
 
++ (NSArray *)rewardedVideoAds
+{
+    return @[
+             [MPAdInfo infoWithTitle:@"Rewarded Video Ad" ID:@"8f000bd5e00246de9c789eed39ff6096" type:MPAdInfoRewardedVideo],
+             ];
+}
+
 + (NSArray *)nativeAds
 {
     return @[
              [MPAdInfo infoWithTitle:@"Native Ad" ID:@"76a3fefaced247959582d2d2df6f4757" type:MPAdInfoNative],
-             [MPAdInfo infoWithTitle:@"Native Ad (TableView Manager)" ID:@"76a3fefaced247959582d2d2df6f4757" type:MPAdInfoNativeInTableView],
+             [MPAdInfo infoWithTitle:@"Native Video Ad" ID:@"b2b67c2a8c0944eda272ed8e4ddf7ed4" type:MPAdInfoNative],
              [MPAdInfo infoWithTitle:@"Native Ad (CollectionView Placer)" ID:@"76a3fefaced247959582d2d2df6f4757" type:MPAdInfoNativeInCollectionView],
-             [MPAdInfo infoWithTitle:@"Native Ad (TableView Placer)" ID:@"76a3fefaced247959582d2d2df6f4757" type:MPAdInfoNativeTableViewPlacer]
+             [MPAdInfo infoWithTitle:@"Native Ad (TableView Placer)" ID:@"76a3fefaced247959582d2d2df6f4757" type:MPAdInfoNativeTableViewPlacer],
+             [MPAdInfo infoWithTitle:@"Native Video Ad (TableView Placer)" ID:@"b2b67c2a8c0944eda272ed8e4ddf7ed4" type:MPAdInfoNativeTableViewPlacer],
              ];
 }
 

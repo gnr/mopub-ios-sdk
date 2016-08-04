@@ -2,7 +2,8 @@
 #import "MPAdConfigurationFactory.h"
 #import "FakeMPAdServerCommunicator.h"
 #import "FakeGADInterstitial.h"
-#import "GADRequest.h"
+#import <GoogleMobileAds/GoogleMobileAds.h>
+#import <Cedar/Cedar.h>
 
 using namespace Cedar::Matchers;
 using namespace Cedar::Doubles;

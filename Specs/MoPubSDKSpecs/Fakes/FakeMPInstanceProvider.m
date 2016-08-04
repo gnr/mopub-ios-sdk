@@ -20,7 +20,7 @@
 #pragma mark - Third Party Integrations Category Interfaces
 #pragma mark iAd
 - (ADInterstitialAd *)buildADInterstitialAd;
-- (ADBannerView *)buildADBannerView;
+- (ADBannerView *)buildADBannerViewWithAdType:(ADAdType)adType;
 
 #pragma mark Chartboost
 - (Chartboost *)buildChartboost;
@@ -46,10 +46,6 @@
 #pragma mark InMobi
 - (IMBanner *)buildIMBannerWithFrame:(CGRect)frame appId:(NSString *)appId adSize:(int)adSize;
 - (IMInterstitial *)buildIMInterstitialWithDelegate:(id<IMInterstitialDelegate>)delegate appId:(NSString *)appId;
-
-#pragma mark Millennial
-- (MMAdView *)buildMMAdViewWithFrame:(CGRect)frame apid:(NSString *)apid rootViewController:(UIViewController *)controller;
-- (id)MMInterstitial;
 
 @end
 
@@ -121,11 +117,11 @@
     return [super buildInterstitialCustomEventFromCustomClass:customClass delegate:delegate];
 }
 
-- (MPHTMLInterstitialViewController *)buildMPHTMLInterstitialViewControllerWithDelegate:(id<MPInterstitialViewControllerDelegate>)delegate orientationType:(MPInterstitialOrientationType)type customMethodDelegate:(id)customMethodDelegate
+- (MPHTMLInterstitialViewController *)buildMPHTMLInterstitialViewControllerWithDelegate:(id<MPInterstitialViewControllerDelegate>)delegate orientationType:(MPInterstitialOrientationType)type
 {
     return [self returnFake:self.fakeMPHTMLInterstitialViewController
                      orCall:^{
-                         return [super buildMPHTMLInterstitialViewControllerWithDelegate:delegate orientationType:type customMethodDelegate:customMethodDelegate];
+                         return [super buildMPHTMLInterstitialViewControllerWithDelegate:delegate orientationType:type];
                      }];
 }
 
@@ -175,13 +171,12 @@
     }
 }
 
-- (MPAdWebViewAgent *)buildMPAdWebViewAgentWithAdWebViewFrame:(CGRect)frame delegate:(id<MPAdWebViewAgentDelegate>)delegate customMethodDelegate:(id)customMethodDelegate
+- (MPAdWebViewAgent *)buildMPAdWebViewAgentWithAdWebViewFrame:(CGRect)frame delegate:(id<MPAdWebViewAgentDelegate>)delegate
 {
     return [self returnFake:self.fakeMPAdWebViewAgent
                      orCall:^{
                          return [super buildMPAdWebViewAgentWithAdWebViewFrame:frame
-                                                                      delegate:delegate
-                                                          customMethodDelegate:customMethodDelegate];
+                                                                      delegate:delegate];
                      }];
 }
 
@@ -336,11 +331,11 @@
                      }];
 }
 
-- (MPStreamAdPlacer *)buildStreamAdPlacerWithViewController:(UIViewController *)controller adPositioning:(MPAdPositioning *)positioning defaultAdRenderingClass:defaultAdRenderingClass
+- (MPStreamAdPlacer *)buildStreamAdPlacerWithViewController:(UIViewController *)controller adPositioning:(MPAdPositioning *)positioning rendererConfigurations:(NSArray *)rendererConfigurations
 {
     return [self returnFake:self.fakeStreamAdPlacer
                      orCall:^{
-                         return [super buildStreamAdPlacerWithViewController:controller adPositioning:positioning defaultAdRenderingClass:defaultAdRenderingClass];
+                         return [super buildStreamAdPlacerWithViewController:controller adPositioning:positioning rendererConfigurations:rendererConfigurations];
                      }];
 }
 
@@ -348,11 +343,25 @@
 
 #pragma mark iAd
 
-- (ADBannerView *)buildADBannerView
+- (ADBannerView *)buildADBannerViewWithAdType:(ADAdType)adType
 {
-    return [self returnFake:self.fakeADBannerView
+    ADBannerView *returnValue;
+
+    switch (adType) {
+        case ADAdTypeBanner:
+            returnValue = self.fakeADBannerView;
+            break;
+        case ADAdTypeMediumRectangle:
+            returnValue = self.fakeADBannerViewMediumRectangle;
+            break;
+        default:
+            returnValue = self.fakeADBannerView;
+            break;
+    }
+
+    return [self returnFake:returnValue
                      orCall:^{
-                         return [super buildADBannerView];
+                         return [super buildADBannerViewWithAdType:adType];
                      }];
 }
 
@@ -466,29 +475,6 @@
         return self.fakeIMAdInterstitial;
     }
     return [super buildIMInterstitialWithDelegate:delegate appId:appId];
-}
-
-#pragma mark Millennial
-
-- (MMAdView *)buildMMAdViewWithFrame:(CGRect)frame apid:(NSString *)apid rootViewController:(UIViewController *)controller
-{
-    if (self.fakeMMAdView) {
-        self.fakeMMAdView.frame = frame;
-        self.fakeMMAdView.apid = apid;
-        self.fakeMMAdView.rootViewController = controller;
-        return self.fakeMMAdView.masquerade;
-    }
-
-    return [super buildMMAdViewWithFrame:frame apid:apid rootViewController:controller];
-}
-
-- (id)MMInterstitial
-{
-    if (self.fakeMMInterstitial) {
-        return self.fakeMMInterstitial;
-    } else {
-        return [super MMInterstitial];
-    }
 }
 
 @end
