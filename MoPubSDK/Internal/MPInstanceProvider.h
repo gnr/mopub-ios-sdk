@@ -88,7 +88,8 @@
 - (MPInterstitialCustomEvent *)buildInterstitialCustomEventFromCustomClass:(Class)customClass
                                                                   delegate:(id<MPInterstitialCustomEventDelegate>)delegate;
 - (MPHTMLInterstitialViewController *)buildMPHTMLInterstitialViewControllerWithDelegate:(id<MPInterstitialViewControllerDelegate>)delegate
-                                                                        orientationType:(MPInterstitialOrientationType)type;
+                                                                        orientationType:(MPInterstitialOrientationType)type
+                                                                   customMethodDelegate:(id)customMethodDelegate;
 - (MPMRAIDInterstitialViewController *)buildMPMRAIDInterstitialViewControllerWithDelegate:(id<MPInterstitialViewControllerDelegate>)delegate
                                                                             configuration:(MPAdConfiguration *)configuration;
 
@@ -100,7 +101,8 @@
 
 #pragma mark - HTML Ads
 - (MPAdWebViewAgent *)buildMPAdWebViewAgentWithAdWebViewFrame:(CGRect)frame
-                                                     delegate:(id<MPAdWebViewAgentDelegate>)delegate;
+                                                     delegate:(id<MPAdWebViewAgentDelegate>)delegate
+                                         customMethodDelegate:(id)customMethodDelegate;
 
 #pragma mark - MRAID
 - (MPClosableView *)buildMRAIDMPClosableViewWithFrame:(CGRect)frame webView:(MPWebView *)webView delegate:(id<MPClosableViewDelegate>)delegate;

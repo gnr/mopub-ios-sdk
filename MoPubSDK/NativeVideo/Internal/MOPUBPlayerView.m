@@ -130,9 +130,9 @@ static CGFloat const kGradientViewHeight = 25.0f;
 {
     if (!self.replayView) {
         self.replayView = [[MOPUBReplayView alloc] initWithFrame:self.avView.bounds displayMode:self.displayMode];
-        __weak typeof(self) weakSelf = self;
+        __typeof__(self) __weak weakSelf = self;
         self.replayView.actionBlock = ^(MOPUBReplayView *view) {
-            __strong typeof(self) strongSelf = weakSelf;
+            __typeof__(self) __strong strongSelf = weakSelf;
             if ([strongSelf.delegate respondsToSelector:@selector(playerViewDidTapReplayButton:)]) {
                 [strongSelf.delegate playerViewDidTapReplayButton:strongSelf];
             }

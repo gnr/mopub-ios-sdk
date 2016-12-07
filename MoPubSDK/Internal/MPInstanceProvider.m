@@ -164,10 +164,12 @@ static MPInstanceProvider *sharedAdProvider = nil;
 
 - (MPHTMLInterstitialViewController *)buildMPHTMLInterstitialViewControllerWithDelegate:(id<MPInterstitialViewControllerDelegate>)delegate
                                                                         orientationType:(MPInterstitialOrientationType)type
+                                                                   customMethodDelegate:(id)customMethodDelegate
 {
     MPHTMLInterstitialViewController *controller = [[MPHTMLInterstitialViewController alloc] init];
     controller.delegate = delegate;
     controller.orientationType = type;
+    controller.customMethodDelegate = customMethodDelegate;
     return controller;
 }
 
@@ -207,8 +209,9 @@ static MPInstanceProvider *sharedAdProvider = nil;
 #pragma mark - HTML Ads
 
 - (MPAdWebViewAgent *)buildMPAdWebViewAgentWithAdWebViewFrame:(CGRect)frame delegate:(id<MPAdWebViewAgentDelegate>)delegate
+                                         customMethodDelegate:(id)customMethodDelegate
 {
-    return [[MPAdWebViewAgent alloc] initWithAdWebViewFrame:frame delegate:delegate];
+    return [[MPAdWebViewAgent alloc] initWithAdWebViewFrame:frame delegate:delegate customMethodDelegate:customMethodDelegate];
 }
 
 #pragma mark - MRAID

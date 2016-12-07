@@ -22,11 +22,13 @@
 
 @synthesize delegate = _delegate;
 @synthesize backingViewAgent = _backingViewAgent;
+@synthesize customMethodDelegate = _customMethodDelegate;
 @synthesize backingView = _backingView;
 
 - (void)dealloc
 {
     self.backingViewAgent.delegate = nil;
+    self.backingViewAgent.customMethodDelegate = nil;
 
     self.backingView.delegate = nil;
 }
@@ -37,7 +39,8 @@
 
     self.view.backgroundColor = [UIColor blackColor];
     self.backingViewAgent = [[MPInstanceProvider sharedProvider] buildMPAdWebViewAgentWithAdWebViewFrame:self.view.bounds
-                                                                                                delegate:self];
+                                                                                                delegate:self
+                                                                                    customMethodDelegate:self.customMethodDelegate];
 }
 
 #pragma mark - Public

@@ -37,7 +37,8 @@
     MPLogTrace(@"Loading HTML interstitial with source: %@", [configuration adResponseHTMLString]);
 
     self.interstitial = [[MPInstanceProvider sharedProvider] buildMPHTMLInterstitialViewControllerWithDelegate:self
-                                                                                               orientationType:configuration.orientationType];
+                                                                                               orientationType:configuration.orientationType
+                                                                                          customMethodDelegate:[self.delegate interstitialDelegate]];
     [self.interstitial loadConfiguration:configuration];
 }
 

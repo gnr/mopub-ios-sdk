@@ -19,6 +19,7 @@ static NSString * const kMoPubURLScheme = @"mopub";
 static NSString * const kMoPubCloseHost = @"close";
 static NSString * const kMoPubFinishLoadHost = @"finishLoad";
 static NSString * const kMoPubFailLoadHost = @"failLoad";
+static NSString * const kMoPubCustomHost = @"custom";
 static NSString * const kMoPubPrecacheCompleteHost = @"precacheComplete";
 static NSString * const kMoPubRewardedVideoEndedHost = @"rewardedVideoEnded";
 
@@ -118,6 +119,8 @@ static NSString * const kMoPubRewardedVideoEndedHost = @"rewardedVideoEnded";
         return MPMoPubHostCommandPrecacheComplete;
     } else if ([host isEqualToString:kMoPubRewardedVideoEndedHost]) {
         return MPMoPubHostCommandRewardedVideoEnded;
+    } else if ([host isEqualToString:kMoPubCustomHost]) {
+        return MPMoPubHostCommandCustom;
     } else {
         return MPMoPubHostCommandUnrecognized;
     }
