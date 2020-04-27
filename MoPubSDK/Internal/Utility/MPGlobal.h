@@ -124,7 +124,7 @@ typedef NSUInteger MPInterstitialOrientationType;
 
 typedef void (^MPTelephoneConfirmationControllerClickHandler)(NSURL *targetTelephoneURL, BOOL confirmed);
 
-@interface MPTelephoneConfirmationController : NSObject <UIAlertViewDelegate>
+@interface MPTelephoneConfirmationController : NSObject
 
 - (id)initWithURL:(NSURL *)url clickHandler:(MPTelephoneConfirmationControllerClickHandler)clickHandler;
 - (void)show;

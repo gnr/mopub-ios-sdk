@@ -339,8 +339,9 @@ NSBundle *MPResourceBundleForClass(Class aClass)
 
 @interface MPTelephoneConfirmationController ()
 
-@property (nonatomic, strong) UIAlertView *alertView;
 @property (nonatomic, strong) NSURL *telephoneURL;
+@property (nonatomic, strong) NSString *phoneNumber;
+
 @property (nonatomic, copy) MPTelephoneConfirmationControllerClickHandler clickHandler;
 
 @end
@@ -367,11 +368,7 @@ NSBundle *MPResourceBundleForClass(Class aClass)
             }
         }
 
-        _alertView = [[UIAlertView alloc] initWithTitle: @"Are you sure you want to call?"
-                                                message:phoneNumber
-                                               delegate:self
-                                      cancelButtonTitle:@"Cancel"
-                                      otherButtonTitles:@"Call", nil];
+        self.phoneNumber = phoneNumber;
         self.clickHandler = clickHandler;
 
         // We want to manually handle telPrompt scheme alerts.  So we'll convert telPrompt schemes to tel schemes.
@@ -385,27 +382,45 @@ NSBundle *MPResourceBundleForClass(Class aClass)
     return self;
 }
 
-- (void)dealloc
-{
-    self.alertView.delegate = nil;
-    [self.alertView dismissWithClickedButtonIndex:0 animated:YES];
+- (void)dealloc {
+}
+
+- (void)showCenteredAlert:(UIAlertController*)alertVC {
+    UIWindow* keyWindow = [UIApplication sharedApplication].keyWindow;
+    UIViewController* fromVC = keyWindow.rootViewController;
+    
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        [alertVC setModalPresentationStyle:UIModalPresentationPopover];
+        
+        UIPopoverPresentationController *popPresenter = [alertVC
+                                                         popoverPresentationController];
+        
+        popPresenter.sourceView = fromVC.view;
+        popPresenter.sourceRect = fromVC.view.bounds;
+    }
+
+    [fromVC presentViewController:alertVC animated:YES completion:nil];
 }
 
 - (void)show
 {
-    [self.alertView show];
-}
+    UIAlertController* alertVC = [UIAlertController alertControllerWithTitle:@"Are you sure you want to call?"
+                                                                     message:self.phoneNumber
+                                                              preferredStyle:UIAlertControllerStyleAlert];
+    [alertVC addAction:[UIAlertAction actionWithTitle:@"Cancel"
+                                                style:UIAlertActionStyleCancel
+                                              handler:^(UIAlertAction * _Nonnull action) {
+        // do nothing
+    }]];
+    [alertVC addAction:[UIAlertAction actionWithTitle:@"Call"
+                                                style:UIAlertActionStyleDefault
+                                              handler:^(UIAlertAction * _Nonnull action) {
+        if (self.clickHandler) {
+            self.clickHandler(self.telephoneURL, YES);
+        }
+    }]];
 
-#pragma mark - UIAlertViewDelegate
-
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
-{
-    BOOL confirmed = (buttonIndex == 1);
-
-    if (self.clickHandler) {
-        self.clickHandler(self.telephoneURL, confirmed);
-    }
-
+    [self showCenteredAlert:alertVC];
 }
 
 @end
