@@ -20,10 +20,9 @@ static NSString *const kMoPubScalesPageToFitScript = @"var meta = document.creat
 
 static NSString *const kMoPubFrameKeyPathString = @"frame";
 
-@interface MPWebView () <UIWebViewDelegate, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate>
+@interface MPWebView () <WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate>
 
 @property (weak, nonatomic) WKWebView *wkWebView;
-@property (weak, nonatomic) UIWebView *uiWebView;
 
 @end
 
@@ -65,42 +64,27 @@ static NSString *const kMoPubFrameKeyPathString = @"frame";
     // set up web view
     UIView *webView;
 
-    if (!forceUIWebView && [WKWebView class]) {
-        WKUserContentController *contentController = [[WKUserContentController alloc] init];
-        WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-        config.allowsInlineMediaPlayback = kMoPubAllowsInlineMediaPlaybackDefault;
-        if ([config respondsToSelector:@selector(requiresUserActionForMediaPlayback)]) {
-            config.requiresUserActionForMediaPlayback = kMoPubRequiresUserActionForMediaPlaybackDefault;
-        } else {
-            config.mediaPlaybackRequiresUserAction = kMoPubRequiresUserActionForMediaPlaybackDefault;
-        }
-        config.userContentController = contentController;
-
-        WKWebView *wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:config];
-
-        wkWebView.UIDelegate = self;
-        wkWebView.navigationDelegate = self;
-
-        webView = wkWebView;
-
-        self.wkWebView = wkWebView;
-
-        // Put WKWebView onto the offscreen view so any loading will complete correctly; see comment below.
-        [self retainWKWebViewOffscreen:wkWebView];
+    WKUserContentController *contentController = [[WKUserContentController alloc] init];
+    WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+    config.allowsInlineMediaPlayback = kMoPubAllowsInlineMediaPlaybackDefault;
+    if ([config respondsToSelector:@selector(requiresUserActionForMediaPlayback)]) {
+        config.requiresUserActionForMediaPlayback = kMoPubRequiresUserActionForMediaPlaybackDefault;
     } else {
-        UIWebView *uiWebView = [[UIWebView alloc] initWithFrame:self.bounds];
-
-        uiWebView.allowsInlineMediaPlayback = kMoPubAllowsInlineMediaPlaybackDefault;
-        uiWebView.mediaPlaybackRequiresUserAction = kMoPubRequiresUserActionForMediaPlaybackDefault;
-
-        uiWebView.delegate = self;
-
-        webView = uiWebView;
-
-        self.uiWebView = uiWebView;
-
-        [self addSubview:webView];
+        config.mediaPlaybackRequiresUserAction = kMoPubRequiresUserActionForMediaPlaybackDefault;
     }
+    config.userContentController = contentController;
+
+    WKWebView *wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:config];
+
+    wkWebView.UIDelegate = self;
+    wkWebView.navigationDelegate = self;
+
+    webView = wkWebView;
+
+    self.wkWebView = wkWebView;
+
+    // Put WKWebView onto the offscreen view so any loading will complete correctly; see comment below.
+    [self retainWKWebViewOffscreen:wkWebView];
 
     webView.backgroundColor = [UIColor clearColor];
     webView.opaque = NO;
@@ -204,111 +188,63 @@ static UIView *gOffscreenView = nil;
 }
 
 - (BOOL)isLoading {
-    return self.uiWebView ? self.uiWebView.isLoading : self.wkWebView.isLoading;
+    return self.wkWebView.isLoading;
 }
 
 - (void)loadData:(NSData *)data
         MIMEType:(NSString *)MIMEType
 textEncodingName:(NSString *)encodingName
          baseURL:(NSURL *)baseURL {
-    if (self.uiWebView) {
-        [self.uiWebView loadData:data
-                        MIMEType:MIMEType
-                textEncodingName:encodingName
-                         baseURL:baseURL];
-    } else {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 90000
-        if ([self.wkWebView respondsToSelector:@selector(loadData:MIMEType:characterEncodingName:baseURL:)]) {
-            [self.wkWebView loadData:data
-                            MIMEType:MIMEType
-               characterEncodingName:encodingName
-                             baseURL:baseURL];
-        }
-#endif
-    }
+    [self.wkWebView loadData:data
+                    MIMEType:MIMEType
+       characterEncodingName:encodingName
+                     baseURL:baseURL];
 }
 
 - (void)loadHTMLString:(NSString *)string
                baseURL:(NSURL *)baseURL {
-    if (self.uiWebView) {
-        [self.uiWebView loadHTMLString:string
-                               baseURL:baseURL];
-    } else {
-        [self.wkWebView loadHTMLString:string
-                               baseURL:baseURL];
-    }
+    [self.wkWebView loadHTMLString:string
+                           baseURL:baseURL];
 }
 
 - (void)loadRequest:(NSURLRequest *)request {
-    if (self.uiWebView) {
-        [self.uiWebView loadRequest:request];
-    } else {
-        [self.wkWebView loadRequest:request];
-    }
+    [self.wkWebView loadRequest:request];
 }
 
 - (void)stopLoading {
-    if (self.uiWebView) {
-        [self.uiWebView stopLoading];
-    } else {
-        [self.wkWebView stopLoading];
-    }
+    [self.wkWebView stopLoading];
 }
 
 - (void)reload {
-    if (self.uiWebView) {
-        [self.uiWebView reload];
-    } else {
-        [self.wkWebView reload];
-    }
+    [self.wkWebView reload];
 }
 
 - (BOOL)canGoBack {
-    return self.uiWebView ? self.uiWebView.canGoBack : self.wkWebView.canGoBack;
+    return self.wkWebView.canGoBack;
 }
 
 - (BOOL)canGoForward {
-    return self.uiWebView ? self.uiWebView.canGoForward : self.wkWebView.canGoForward;
+    return self.wkWebView.canGoForward;
 }
 
 - (void)goBack {
-    if (self.uiWebView) {
-        [self.uiWebView goBack];
-    } else {
-        [self.wkWebView goBack];
-    }
+    [self.wkWebView goBack];
 }
 
 - (void)goForward {
-    if (self.uiWebView) {
-        [self.uiWebView goForward];
-    } else {
-        [self.wkWebView goForward];
-    }
+    [self.wkWebView goForward];
 }
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 90000
 - (void)setAllowsLinkPreview:(BOOL)allowsLinkPreview {
-    if (self.uiWebView) {
-        if ([self.uiWebView respondsToSelector:@selector(setAllowsLinkPreview:)]) {
-            self.uiWebView.allowsLinkPreview = allowsLinkPreview;
-        }
-    } else {
-        if ([self.wkWebView respondsToSelector:@selector(setAllowsLinkPreview:)]) {
-            self.wkWebView.allowsLinkPreview = allowsLinkPreview;
-        }
+    if ([self.wkWebView respondsToSelector:@selector(setAllowsLinkPreview:)]) {
+        self.wkWebView.allowsLinkPreview = allowsLinkPreview;
     }
 }
 
 - (BOOL)allowsLinkPreview {
-    if (self.uiWebView) {
-        if ([self.uiWebView respondsToSelector:@selector(allowsLinkPreview)]) {
-            return self.uiWebView.allowsLinkPreview;
-        }
-    } else {
-        if ([self.wkWebView respondsToSelector:@selector(allowsLinkPreview)]) {
-            return self.wkWebView.allowsLinkPreview;
-        }
+    if ([self.wkWebView respondsToSelector:@selector(allowsLinkPreview)]) {
+        return self.wkWebView.allowsLinkPreview;
     }
 
     return NO;
@@ -316,155 +252,94 @@ textEncodingName:(NSString *)encodingName
 #endif
 
 - (void)setScalesPageToFit:(BOOL)scalesPageToFit {
-    if (self.uiWebView) {
-        self.uiWebView.scalesPageToFit = scalesPageToFit;
+    if (scalesPageToFit) {
+        self.wkWebView.scrollView.delegate = nil;
+
+        [self.wkWebView.configuration.userContentController removeAllUserScripts];
     } else {
-        if (scalesPageToFit) {
-            self.wkWebView.scrollView.delegate = nil;
+        // Make sure the scroll view can't scroll (prevent double tap to zoom)
+        self.wkWebView.scrollView.delegate = self;
 
-            [self.wkWebView.configuration.userContentController removeAllUserScripts];
-        } else {
-            // Make sure the scroll view can't scroll (prevent double tap to zoom)
-            self.wkWebView.scrollView.delegate = self;
-
-            // Inject the user script to scale the page if needed
-            if (self.wkWebView.configuration.userContentController.userScripts.count == 0) {
-                WKUserScript *viewportScript = [[WKUserScript alloc] initWithSource:kMoPubScalesPageToFitScript
-                                                                      injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
-                                                                   forMainFrameOnly:YES];
-                [self.wkWebView.configuration.userContentController addUserScript:viewportScript];
-            }
+        // Inject the user script to scale the page if needed
+        if (self.wkWebView.configuration.userContentController.userScripts.count == 0) {
+            WKUserScript *viewportScript = [[WKUserScript alloc] initWithSource:kMoPubScalesPageToFitScript
+                                                                  injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+                                                               forMainFrameOnly:YES];
+            [self.wkWebView.configuration.userContentController addUserScript:viewportScript];
         }
     }
 }
 
 - (BOOL)scalesPageToFit {
-    return self.uiWebView ? self.uiWebView.scalesPageToFit : self.scrollView.delegate == nil;
+    return self.scrollView.delegate == nil;
 }
 
 - (UIScrollView *)scrollView {
-    return self.uiWebView ? self.uiWebView.scrollView : self.wkWebView.scrollView;
+    return self.wkWebView.scrollView;
 }
 
 - (void)evaluateJavaScript:(NSString *)javaScriptString
          completionHandler:(MPWebViewJavascriptEvaluationCompletionHandler)completionHandler {
-    if (self.uiWebView) {
-        NSString *resultString = [self.uiWebView stringByEvaluatingJavaScriptFromString:javaScriptString];
-
-        if (completionHandler) {
-            completionHandler(resultString, nil);
-        }
-    } else {
-        [self.wkWebView evaluateJavaScript:javaScriptString
-                         completionHandler:completionHandler];
-    }
+    [self.wkWebView evaluateJavaScript:javaScriptString
+                     completionHandler:completionHandler];
 }
 
 - (NSString *)stringByEvaluatingJavaScriptFromString:(NSString *)javaScriptString {
-    if (self.uiWebView) {
-        return [self.uiWebView stringByEvaluatingJavaScriptFromString:javaScriptString];
-    } else {
-        // There is no way to reliably wait for `evaluateJavaScript:completionHandler:` to finish without risk of
-        // deadlocking the main thread. This method is called on the main thread and the completion block is also
-        // called on the main thread.
-        // Instead of waiting, just fire and return an empty string.
+    // There is no way to reliably wait for `evaluateJavaScript:completionHandler:` to finish without risk of
+    // deadlocking the main thread. This method is called on the main thread and the completion block is also
+    // called on the main thread.
+    // Instead of waiting, just fire and return an empty string.
 
-        // Methods attempted:
-        // libdispatch dispatch groups
-        // http://stackoverflow.com/questions/17920169/how-to-wait-for-method-that-has-completion-block-all-on-main-thread
+    // Methods attempted:
+    // libdispatch dispatch groups
+    // http://stackoverflow.com/questions/17920169/how-to-wait-for-method-that-has-completion-block-all-on-main-thread
 
-        [self.wkWebView evaluateJavaScript:javaScriptString completionHandler:nil];
-        return @"";
-    }
+    [self.wkWebView evaluateJavaScript:javaScriptString completionHandler:nil];
+    return @"";
 }
 
 - (BOOL)allowsInlineMediaPlayback {
-    return self.uiWebView ? self.uiWebView.allowsInlineMediaPlayback : self.wkWebView.configuration.allowsInlineMediaPlayback;
+    return self.wkWebView.configuration.allowsInlineMediaPlayback;
 }
 
 - (BOOL)mediaPlaybackRequiresUserAction {
-    if (self.uiWebView) {
-        return self.uiWebView.mediaPlaybackRequiresUserAction;
-    } else {
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 90000
-        if (![self.wkWebView.configuration respondsToSelector:@selector(requiresUserActionForMediaPlayback)]) {
-            return self.wkWebView.configuration.mediaPlaybackRequiresUserAction;
-        }
+    if (![self.wkWebView.configuration respondsToSelector:@selector(requiresUserActionForMediaPlayback)]) {
+        return self.wkWebView.configuration.mediaPlaybackRequiresUserAction;
+    }
 #endif
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 90000
-        return self.wkWebView.configuration.requiresUserActionForMediaPlayback;
+    return self.wkWebView.configuration.requiresUserActionForMediaPlayback;
 #else
-        return NO; // avoid compiler error under 8.4 SDK
+    return NO; // avoid compiler error under 8.4 SDK
 #endif
-    }
 }
 
 - (BOOL)mediaPlaybackAllowsAirPlay {
-    if (self.uiWebView) {
-        return self.uiWebView.mediaPlaybackAllowsAirPlay;
-    } else {
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 90000
-        if (![self.wkWebView.configuration respondsToSelector:@selector(allowsAirPlayForMediaPlayback)]) {
-            return self.wkWebView.configuration.mediaPlaybackAllowsAirPlay;
-        }
+    if (![self.wkWebView.configuration respondsToSelector:@selector(allowsAirPlayForMediaPlayback)]) {
+        return self.wkWebView.configuration.mediaPlaybackAllowsAirPlay;
+    }
 #endif
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 90000
-        return self.wkWebView.configuration.allowsAirPlayForMediaPlayback;
+    return self.wkWebView.configuration.allowsAirPlayForMediaPlayback;
 #else
-        return NO; // avoid compiler error under 8.4 SDK
+    return NO; // avoid compiler error under 8.4 SDK
 #endif
-    }
 }
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 90000
 - (BOOL)allowsPictureInPictureMediaPlayback {
-    if (self.uiWebView) {
-        if ([self.uiWebView respondsToSelector:@selector(allowsPictureInPictureMediaPlayback)]) {
-            return self.uiWebView.allowsPictureInPictureMediaPlayback;
-        }
-    } else {
-        if ([self.wkWebView.configuration respondsToSelector:@selector(allowsPictureInPictureMediaPlayback)]) {
-            return self.wkWebView.configuration.allowsPictureInPictureMediaPlayback;
-        }
+    if ([self.wkWebView.configuration respondsToSelector:@selector(allowsPictureInPictureMediaPlayback)]) {
+        return self.wkWebView.configuration.allowsPictureInPictureMediaPlayback;
     }
 
     return NO;
 }
 #endif
 
-#pragma mark - UIWebViewDelegate
-
-- (BOOL)webView:(UIWebView *)webView
-shouldStartLoadWithRequest:(NSURLRequest *)request
- navigationType:(UIWebViewNavigationType)navigationType {
-    if ([self.delegate respondsToSelector:@selector(webView:shouldStartLoadWithRequest:navigationType:)]) {
-        return [self.delegate webView:self
-           shouldStartLoadWithRequest:request
-                       navigationType:navigationType];
-    }
-
-    return YES;
-}
-
-- (void)webViewDidStartLoad:(UIWebView *)webView {
-    if ([self.delegate respondsToSelector:@selector(webViewDidStartLoad:)]) {
-        [self.delegate webViewDidStartLoad:self];
-    }
-}
-
-- (void)webViewDidFinishLoad:(UIWebView *)webView {
-    if ([self.delegate respondsToSelector:@selector(webViewDidFinishLoad:)]) {
-        [self.delegate webViewDidFinishLoad:self];
-    }
-}
-
-- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-    if ([self.delegate respondsToSelector:@selector(webView:didFailLoadWithError:)]) {
-        [self.delegate webView:self didFailLoadWithError:error];
-    }
-}
 
 #pragma mark - UIWebView+MPAdditions methods
 
@@ -478,9 +353,7 @@ shouldStartLoadWithRequest:(NSURLRequest *)request
 /// Redefine alert, prompt, and confirm to do nothing
 - (void)disableJavaScriptDialogs
 {
-    if (self.uiWebView) { // Only redefine on UIWebView, as the WKNavigationDelegate for WKWebView takes care of this.
-        [self stringByEvaluatingJavaScriptFromString:kMoPubJavaScriptDisableDialogScript];
-    }
+    // Only redefine on UIWebView, as the WKNavigationDelegate for WKWebView takes care of this.
 }
 
 #pragma mark - WKNavigationDelegate

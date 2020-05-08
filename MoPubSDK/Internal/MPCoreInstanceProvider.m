@@ -9,6 +9,7 @@
 
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <CoreTelephony/CTCarrier.h>
+#import <WebKit/WebKit.h>
 
 #import "MPAdServerCommunicator.h"
 #import "MPURLResolver.h"
@@ -148,7 +149,13 @@ static MPCoreInstanceProvider *sharedProvider = nil;
 - (NSString *)userAgent
 {
     if (!_userAgent) {
-        self.userAgent = [[[UIWebView alloc] init] stringByEvaluatingJavaScriptFromString:@"navigator.userAgent"];
+        WKWebViewConfiguration* configuration = [[WKWebViewConfiguration alloc] init];
+        WKWebView* webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration];
+        [webView evaluateJavaScript:@"navigator.userAgent" completionHandler:^(id _Nullable response, NSError * _Nullable error) {
+            if([response isKindOfClass:[NSString class]]) {
+                self.userAgent = response;
+            }
+        }];
     }
 
     return _userAgent;

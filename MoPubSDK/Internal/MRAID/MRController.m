@@ -21,7 +21,6 @@
 #import "MPTimer.h"
 #import "NSHTTPURLResponse+MPAdditions.h"
 #import "NSURL+MPAdditions.h"
-#import "UIWebView+MPAdditions.h"
 #import "MPForceableOrientationProtocol.h"
 #import "MPAPIEndPoints.h"
 

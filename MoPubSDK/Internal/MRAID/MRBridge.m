@@ -12,7 +12,6 @@
 #import "MPGlobal.h"
 #import "MRBundleManager.h"
 #import "MPInstanceProvider.h"
-#import "UIWebView+MPAdditions.h"
 #import "MRError.h"
 #import "MRProperty.h"
 #import "MRNativeCommandHandler.h"

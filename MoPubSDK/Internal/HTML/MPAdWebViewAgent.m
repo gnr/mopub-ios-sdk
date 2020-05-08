@@ -11,7 +11,6 @@
 #import "MPLogging.h"
 #import "MPAdDestinationDisplayAgent.h"
 #import "NSURL+MPAdditions.h"
-#import "UIWebView+MPAdditions.h"
 #import "MPWebView.h"
 #import "MPInstanceProvider.h"
 #import "MPCoreInstanceProvider.h"
